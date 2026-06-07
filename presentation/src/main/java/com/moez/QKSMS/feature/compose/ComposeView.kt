@@ -92,6 +92,8 @@ interface ComposeView : QkView<ComposeState> {
     val recordAudioChronometer: Subject<Boolean>
 
     fun clearSelection()
+    /** When the conversation was opened from an incoming-SMS notification, sends this app's task behind the previous foreground app. */
+    fun moveSmsTaskBehindForegroundApp()
     fun toggleSelectAll()
     fun expandMessages(messageIds: List<Long>, expand: Boolean)
     fun showDetails(details: String)

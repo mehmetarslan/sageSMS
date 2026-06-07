@@ -27,6 +27,12 @@ interface NotificationManager {
 
     fun update(threadId: Long)
 
+    /**
+     * Shows a notification for the given message using the same pipeline as a new SMS
+     * (including per-sender notification extract rules). Intended for testing rules only.
+     */
+    fun showNotificationRulePreview(threadId: Long, messageId: Long)
+
     fun notifyFailed(threadId: Long)
 
     fun createNotificationChannel(threadId: Long = 0L)

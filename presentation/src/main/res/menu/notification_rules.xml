@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/add"
+        android:icon="@drawable/ic_add_black_24dp"
+        android:title="@string/notification_rules_add_title"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/exportRules"
+        android:title="@string/notification_rules_export_title"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/importRules"
+        android:title="@string/notification_rules_import_title"
+        app:showAsAction="never" />
+</menu>

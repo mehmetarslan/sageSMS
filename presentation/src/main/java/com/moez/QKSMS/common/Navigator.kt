@@ -39,6 +39,8 @@ import dev.octoshrimpy.quik.feature.conversationinfo.ConversationInfoActivity
 import dev.octoshrimpy.quik.feature.gallery.GalleryActivity
 import dev.octoshrimpy.quik.feature.main.MainActivity
 import dev.octoshrimpy.quik.feature.messageutils.MessageUtilsActivity
+import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationCustomizeActivity
+import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationRulesActivity
 import dev.octoshrimpy.quik.feature.notificationprefs.NotificationPrefsActivity
 import dev.octoshrimpy.quik.feature.plus.PlusActivity
 import dev.octoshrimpy.quik.feature.scheduled.ScheduledActivity
@@ -156,6 +158,21 @@ class Navigator @Inject constructor(
         val intent = Intent(context, ConversationInfoActivity::class.java)
         intent.putExtra("threadId", threadId)
         startActivity(intent)
+    }
+
+    fun showNotificationCustomize(threadId: Long, preselectedMessageId: Long = -1L) {
+        startActivity(
+            Intent(context, NotificationCustomizeActivity::class.java)
+                .putExtra(NotificationCustomizeActivity.EXTRA_THREAD_ID, threadId)
+                .putExtra(NotificationCustomizeActivity.EXTRA_MESSAGE_ID, preselectedMessageId)
+        )
+    }
+
+    fun showNotificationRules(threadId: Long) {
+        startActivity(
+            Intent(context, NotificationRulesActivity::class.java)
+                .putExtra(NotificationRulesActivity.EXTRA_THREAD_ID, threadId)
+        )
     }
 
     fun showMedia(partId: Long) {

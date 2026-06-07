@@ -59,3 +59,9 @@ keystore.p12
 config.yml
 *.jks
 
+# Cursor / agent debug logs
+.cursor-logcat*.txt
+
+# Icon pipeline scratch assets
+tools/icon-work/
+

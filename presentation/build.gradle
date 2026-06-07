@@ -30,7 +30,7 @@ android {
         targetSdkVersion 33
         versionCode 2238
         versionName '4.3.6'
-        setProperty("archivesBaseName", "QUIK-v${versionName}")
+        setProperty("archivesBaseName", "SageSMS-v${versionName}")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -68,7 +68,7 @@ android {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
-            resValue("string", "app_name", "QUIK-Debug")
+            resValue("string", "app_name", "SageSMS")
             resValue("string", "application_id", defaultConfig.applicationId)
             signingConfig signingConfigs.debug
         }

@@ -42,8 +42,18 @@
         android:paddingStart="24dp"
         android:paddingTop="16dp"
         android:paddingEnd="24dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="8dp"
         android:textColorHint="?android:attr/textColorTertiary"
         app:textSize="primary" />
+
+    <dev.octoshrimpy.quik.common.widget.QkTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/blocked_numbers_pattern_info"
+        android:textColor="?android:attr/textColorSecondary"
+        app:textSize="tertiary" />
 
 </LinearLayout>

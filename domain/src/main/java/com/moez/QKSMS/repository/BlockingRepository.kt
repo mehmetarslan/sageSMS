@@ -31,6 +31,10 @@ interface BlockingRepository {
 
     fun isBlocked(address: String): Boolean
 
+    fun getBlockedAddresses(): List<String>
+
+    fun replaceBlockedAddresses(addresses: List<String>)
+
     fun unblockNumber(id: Long)
 
     fun unblockNumbers(vararg addresses: String)

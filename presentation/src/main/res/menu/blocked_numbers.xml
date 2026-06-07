@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/importBlockedNumbers"
+        android:title="@string/blocked_numbers_import_title"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/exportBlockedNumbers"
+        android:title="@string/blocked_numbers_export_title"
+        android:showAsAction="never" />
+</menu>

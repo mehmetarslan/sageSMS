@@ -97,6 +97,15 @@ import javax.inject.Inject
 
 class ComposeActivity : QkThemedActivity(), ComposeView {
 
+    companion object {
+        /**
+         * Set on the intent used by incoming-message notifications so that Back / Up returns to
+         * the app that was in the foreground (via [moveTaskToBack]) instead of walking through
+         * MainActivity and landing on the launcher on some devices.
+         */
+        const val EXTRA_RETURN_TO_PREVIOUS_APP = "returnToPreviousApp"
+    }
+
     @Inject lateinit var composeAttachmentAdapter: ComposeAttachmentAdapter
     @Inject lateinit var chipsAdapter: ChipsAdapter
     @Inject lateinit var dateFormatter: DateFormatter
@@ -437,6 +446,10 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         binding.toolbar.menu.findItem(R.id.details)?.isVisible = !state.editingMode && state.selectedMessages == 1
         binding.toolbar.menu.findItem(R.id.delete)?.isVisible = !state.editingMode && ((state.selectedMessages > 0) || state.canSend)
         binding.toolbar.menu.findItem(R.id.forward)?.isVisible = !state.editingMode && state.selectedMessages == 1
+        binding.toolbar.menu.findItem(R.id.notification_customize)?.isVisible =
+            !state.editingMode && state.selectedMessages == 1 && state.selectedMessagesHaveText
+        binding.toolbar.menu.findItem(R.id.notification_rule_preview)?.isVisible =
+            !state.editingMode && state.selectedMessages == 1 && state.selectedMessagesHaveText
         binding.toolbar.menu.findItem(R.id.show_status)?.isVisible = !state.editingMode && state.selectedMessages > 0
         binding.toolbar.menu.findItem(R.id.previous)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
         binding.toolbar.menu.findItem(R.id.next)?.isVisible = state.selectedMessages == 0 && state.query.isNotEmpty()
@@ -539,6 +552,10 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     }
 
     override fun clearSelection() = messageAdapter.clearSelection()
+
+    override fun moveSmsTaskBehindForegroundApp() {
+        moveTaskToBack(true)
+    }
 
     override fun toggleSelectAll() {
         messageAdapter.toggleSelectAll()

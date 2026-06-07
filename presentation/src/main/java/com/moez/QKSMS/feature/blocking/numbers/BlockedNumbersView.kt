@@ -26,7 +26,13 @@ interface BlockedNumbersView : QkViewContract<BlockedNumbersState> {
     fun unblockAddress(): Observable<Long>
     fun addAddress(): Observable<*>
     fun saveAddress(): Observable<String>
+    fun importAddresses(): Observable<String>
+    fun exportAddresses(): Observable<*>
 
     fun showAddDialog()
+    fun showImportDialog()
+    fun showExportDialog(exportedJson: String)
+    fun showImportResult(importedCount: Int)
+    fun showImportError()
 
 }

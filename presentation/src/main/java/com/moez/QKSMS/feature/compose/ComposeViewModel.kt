@@ -62,6 +62,7 @@ import dev.octoshrimpy.quik.interactor.SaveImage
 import dev.octoshrimpy.quik.interactor.SendNewMessage
 import dev.octoshrimpy.quik.manager.ActiveConversationManager
 import dev.octoshrimpy.quik.manager.BillingManager
+import dev.octoshrimpy.quik.manager.NotificationManager
 import dev.octoshrimpy.quik.manager.PermissionManager
 import dev.octoshrimpy.quik.model.Attachment
 import dev.octoshrimpy.quik.model.Conversation
@@ -100,6 +101,7 @@ import javax.inject.Named
 class ComposeViewModel @Inject constructor(
     @Named("query") private val query: String,
     @Named("threadId") private val threadId: Long,
+    @Named("returnToPreviousAppOnComposeBack") private val returnToPreviousAppOnComposeBack: Boolean,
     @Named("addresses") private val addresses: List<String>,
     @Named("text") private val sharedText: String,
     @Named("attachments") val sharedAttachments: List<Attachment>,
@@ -120,6 +122,7 @@ class ComposeViewModel @Inject constructor(
     private val messageRepo: MessageRepository,
     private val scheduledMessageRepo: ScheduledMessageRepository,
     private val navigator: Navigator,
+    private val notificationManager: NotificationManager,
     private val permissionManager: PermissionManager,
     private val phoneNumberUtils: PhoneNumberUtils,
     private val prefs: Preferences,
@@ -523,6 +526,37 @@ class ComposeViewModel @Inject constructor(
             }
             .autoDisposable(view.scope())
             .subscribe { view.clearSelection() }
+
+        // Open per-sender notification line customization for this thread
+        view.optionsItemIntent
+            .filter { it == R.id.notification_customize }
+            .withLatestFrom(state, view.messagesSelectedIntent) { _, s, selected -> s to selected }
+            .mapNotNull { (s, selected) -> selected.firstOrNull()?.let { messageId -> s.threadId to messageId } }
+            .autoDisposable(view.scope())
+            .subscribe { (threadId, messageId) ->
+                navigator.showNotificationCustomize(threadId, messageId)
+                view.clearSelection()
+            }
+
+        view.optionsItemIntent
+            .filter { it == R.id.notification_rule_preview }
+            .withLatestFrom(state, view.messagesSelectedIntent) { _, s, selected -> s.threadId to selected }
+            .mapNotNull { (threadId, selected) ->
+                selected.firstOrNull()?.let { messageId -> threadId to messageId }
+            }
+            .observeOn(Schedulers.io())
+            .doOnNext { (threadId, messageId) ->
+                notificationManager.showNotificationRulePreview(threadId, messageId)
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe(
+                { view.clearSelection() },
+                { e ->
+                    Timber.e(e, "notification_rule_preview")
+                    view.clearSelection()
+                }
+            )
 
         // expand message to show additional info
         view.optionsItemIntent
@@ -1268,6 +1302,7 @@ class ComposeViewModel @Inject constructor(
                 .withLatestFrom(state) { _, state ->
                     when {
                         state.selectedMessages > 0 -> view.clearSelection()
+                        returnToPreviousAppOnComposeBack -> view.moveSmsTaskBehindForegroundApp()
                         else -> newState { copy(hasError = true) }
                     }
                 }

@@ -37,7 +37,7 @@ class QkRealmMigration @Inject constructor(
 ) : RealmMigration {
 
     companion object {
-        const val SCHEMA_VERSION: Long = 15
+        const val SCHEMA_VERSION: Long = 19
     }
 
     @SuppressLint("ApplySharedPref")
@@ -298,6 +298,69 @@ class QkRealmMigration @Inject constructor(
             }
 
             version ++
+        }
+
+        if (version == 15L) {
+            realm.schema.create("NotificationExtractRule")
+                .addField("id", Long::class.java, FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED)
+                .addField("address", String::class.java, FieldAttribute.REQUIRED, FieldAttribute.INDEXED)
+                .addField("searchText", String::class.java, FieldAttribute.REQUIRED)
+                .addField("leftAnchor", String::class.java, FieldAttribute.REQUIRED)
+                .addField("rightAnchor", String::class.java, FieldAttribute.REQUIRED)
+
+            version++
+        }
+
+        if (version == 16L) {
+            if (realm.schema.get("NotificationExtractRule") != null) {
+                realm.schema.get("NotificationExtractRule")
+                    ?.addField("extractionMode", Int::class.java, FieldAttribute.REQUIRED)
+                    ?.addField("digitCount", Int::class.java, FieldAttribute.REQUIRED)
+                    ?.transform { o ->
+                        o.setInt("extractionMode", 0)
+                        o.setInt("digitCount", 0)
+                    }
+            }
+            version++
+        }
+
+        if (version == 17L) {
+            realm.schema.get("NotificationExtractRule")
+                ?.apply {
+                    if (!hasField("extractLength")) {
+                        addField("extractLength", Int::class.java, FieldAttribute.REQUIRED)
+                    }
+                    if (!hasField("notificationPrefix")) {
+                        addField("notificationPrefix", String::class.java, FieldAttribute.REQUIRED)
+                    }
+                    if (hasField("digitCount")) {
+                        removeField("digitCount")
+                    }
+                    transform { o ->
+                        o.setInt("extractLength", 0)
+                        o.setString("notificationPrefix", "")
+                        o.setInt("extractionMode", 2)
+                    }
+                }
+            version++
+        }
+
+        if (version == 18L) {
+            realm.schema.get("NotificationExtractRule")
+                ?.apply {
+                    if (!hasField("applyToAllSenders")) {
+                        addField("applyToAllSenders", Boolean::class.java, FieldAttribute.REQUIRED)
+                    }
+                    if (!hasField("sampleBody")) {
+                        addField("sampleBody", String::class.java, FieldAttribute.REQUIRED)
+                    }
+                    transform { o ->
+                        o.setBoolean("applyToAllSenders", false)
+                        val search = o.getString("searchText").orEmpty()
+                        o.setString("sampleBody", search)
+                    }
+                }
+            version++
         }
 
         check(version >= SCHEMA_VERSION) {

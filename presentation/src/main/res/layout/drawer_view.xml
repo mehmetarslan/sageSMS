@@ -154,6 +154,21 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/notificationRules"
+            style="@style/DrawerRow">
+
+            <ImageView
+                style="@style/DrawerIcon"
+                android:src="@drawable/ic_notifications_black_24dp"
+                app:tint="?android:attr/textColorSecondary" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                style="@style/DrawerText"
+                android:text="@string/notification_rules_title" />
+
+        </LinearLayout>
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

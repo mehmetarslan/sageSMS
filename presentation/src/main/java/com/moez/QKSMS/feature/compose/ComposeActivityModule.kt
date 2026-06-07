@@ -40,6 +40,11 @@ class ComposeActivityModule {
     fun provideThreadId(activity: ComposeActivity): Long = activity.intent.extras?.getLong("threadId") ?: 0L
 
     @Provides
+    @Named("returnToPreviousAppOnComposeBack")
+    fun provideReturnToPreviousAppOnComposeBack(activity: ComposeActivity): Boolean =
+        activity.intent.getBooleanExtra(ComposeActivity.EXTRA_RETURN_TO_PREVIOUS_APP, false)
+
+    @Provides
     @Named("addresses")
     fun provideAddresses(activity: ComposeActivity): List<String> =
         if ((activity.intent?.data?.scheme == "sms") || (activity.intent?.data?.scheme == "smsto"))

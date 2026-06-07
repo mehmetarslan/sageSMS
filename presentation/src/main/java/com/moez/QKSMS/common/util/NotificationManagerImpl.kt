@@ -29,7 +29,10 @@ import android.graphics.Color
 import android.media.AudioAttributes
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.PowerManager
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -53,7 +56,9 @@ import dev.octoshrimpy.quik.receiver.RemoteMessagingReceiver
 import dev.octoshrimpy.quik.receiver.SpeakThreadsReceiver
 import dev.octoshrimpy.quik.repository.ContactRepository
 import dev.octoshrimpy.quik.repository.ConversationRepository
+import dev.octoshrimpy.quik.model.Message
 import dev.octoshrimpy.quik.repository.MessageRepository
+import dev.octoshrimpy.quik.repository.NotificationExtractRuleRepository
 import dev.octoshrimpy.quik.util.GlideApp
 import dev.octoshrimpy.quik.util.PhoneNumberUtils
 import dev.octoshrimpy.quik.util.Preferences
@@ -74,7 +79,8 @@ class NotificationManagerImpl @Inject constructor(
     private val permissions: PermissionManager,
     private val phoneNumberUtils: PhoneNumberUtils,
     private val contactRepo: ContactRepository,
-    private val shortcutManager: ShortcutManager
+    private val shortcutManager: ShortcutManager,
+    private val notificationExtractRuleRepository: NotificationExtractRuleRepository
 ) : dev.octoshrimpy.quik.manager.NotificationManager {
 
     companion object {
@@ -140,6 +146,67 @@ class NotificationManagerImpl @Inject constructor(
             return
         }
 
+        postConversationMessageNotification(threadId, messages, threadId.toInt(), isPreview = false)
+    }
+
+    override fun showNotificationRulePreview(threadId: Long, messageId: Long) {
+        fun toastMain(resId: Int) {
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(context.applicationContext, resId, Toast.LENGTH_SHORT).show()
+            }
+        }
+        if (!permissions.hasNotifications()) {
+            Timber.w("Cannot show rule preview without notification permission")
+            toastMain(R.string.notification_rule_preview_need_permission)
+            return
+        }
+        val message = messageRepo.getUnmanagedMessage(messageId)
+        if (message == null) {
+            Timber.w("Rule preview: no message for id=%s", messageId)
+            toastMain(R.string.notification_rule_preview_message_missing)
+            return
+        }
+        if (!message.hasNonWhitespaceText()) {
+            Timber.w("Rule preview: message id=%s has no displayable text", messageId)
+            return
+        }
+        val convThreadId = message.threadId
+        if (convThreadId != threadId) {
+            Timber.d(
+                "Rule preview: state threadId=%s differs from message.threadId=%s (using message thread)",
+                threadId,
+                convThreadId
+            )
+        }
+        if (conversationRepo.getConversation(convThreadId) == null) {
+            Timber.w("Rule preview: no conversation for threadId=%s", convThreadId)
+            toastMain(R.string.notification_rule_preview_no_conversation)
+            return
+        }
+        try {
+            postConversationMessageNotification(
+                convThreadId,
+                listOf(message),
+                rulePreviewNotifyId(messageId),
+                isPreview = true
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Rule preview: failed to post notification")
+            toastMain(R.string.notification_rule_preview_failed)
+        }
+    }
+
+    private fun rulePreviewNotifyId(messageId: Long): Int =
+        (0x7100_0000 + (messageId % 50_000_000L).toInt()) and 0x7FFFFFFF
+
+    private fun postConversationMessageNotification(
+        threadId: Long,
+        messages: List<Message>,
+        notifyId: Int,
+        isPreview: Boolean
+    ) {
+        if (messages.isEmpty()) return
+
         val conversation = conversationRepo.getConversation(threadId) ?: return
         val lastRecipient = conversation.lastMessage?.let { lastMessage ->
             conversation.recipients.find { recipient ->
@@ -147,7 +214,12 @@ class NotificationManagerImpl @Inject constructor(
             }
         } ?: conversation.recipients.firstOrNull()
 
-        val contentIntent = Intent(context, ComposeActivity::class.java).putExtra("threadId", threadId)
+        val contentIntent = Intent(context, ComposeActivity::class.java).apply {
+            putExtra("threadId", threadId)
+            if (!isPreview) {
+                putExtra(ComposeActivity.EXTRA_RETURN_TO_PREVIOUS_APP, true)
+            }
+        }
         val taskStackBuilder = TaskStackBuilder.create(context)
                 .addParentStack(ComposeActivity::class.java)
                 .addNextIntent(contentIntent)
@@ -178,11 +250,15 @@ class NotificationManagerImpl @Inject constructor(
                 .setSmallIcon(R.drawable.ic_notification)
                 .setNumber(messages.size)
                 .setAutoCancel(true)
-                .setOnlyAlertOnce(true)
+                .setOnlyAlertOnce(!isPreview)
                 .setContentIntent(contentPI)
-                .setDeleteIntent(seenPI)
                 .setLights(Color.WHITE, 500, 2000)
-                .setWhen(conversation.lastMessage?.date ?: System.currentTimeMillis())
+                // Preview must use "now" or NotificationService drops the post as an old notification
+                // (MessagingStyle still shows each message's timestamp from the added messages).
+                .setWhen(
+                    if (isPreview) System.currentTimeMillis()
+                    else messages.maxOfOrNull { it.date } ?: System.currentTimeMillis()
+                )
                 .setVibrate(if (prefs.vibration(threadId).get()) VIBRATE_PATTERN else longArrayOf(0))
 
         // if preference set to silence notifications if no recipients in contacts
@@ -201,6 +277,12 @@ class NotificationManagerImpl @Inject constructor(
             notification.setSilent(true)
         else
             notification.setSound(ringtone)
+
+        if (!isPreview) {
+            notification.setDeleteIntent(seenPI)
+        } else {
+            notification.setSubText(context.getString(R.string.notification_rule_preview_subtext))
+        }
 
     // Tell the notification if it's a group message
         val messagingStyle = NotificationCompat.MessagingStyle("Me")
@@ -222,7 +304,11 @@ class NotificationManagerImpl @Inject constructor(
                     person.fromRecipient(recipient, context, colors)
             }
 
-            NotificationCompat.MessagingStyle.Message(message.getSummary(), message.date, person.build()).apply {
+            val summary = message.getSummary()
+            val line = notificationExtractRuleRepository
+                .getNotificationLine(message.address, summary) ?: summary
+
+            NotificationCompat.MessagingStyle.Message(line, message.date, person.build()).apply {
                 message.parts.firstOrNull { it.isImage() }?.let { part ->
                     setData(part.type, ContentUris.withAppendedId(CursorToPartImpl.CONTENT_URI, part.id))
                 }
@@ -248,6 +334,20 @@ class NotificationManagerImpl @Inject constructor(
                 }
                 ?.let { futureGet -> tryOrNull(false) { futureGet.get() } }
 
+        // One-line override for "name only" when a single unread message matches a rule
+        val lastForLine = messages.lastOrNull()
+        val nameModeLine: String? = if (lastForLine != null && messages.size == 1) {
+            notificationExtractRuleRepository.getNotificationLine(
+                lastForLine.address,
+                lastForLine.getSummary()
+            )
+        } else {
+            null
+        }
+        val quantityString = context.resources.getQuantityString(
+            R.plurals.notification_new_messages, messages.size, messages.size
+        )
+
         // Bind the notification contents based on the notification preview mode
         when (prefs.notificationPreviews(threadId).get()) {
             Preferences.NOTIFICATION_PREVIEWS_ALL -> {
@@ -260,15 +360,15 @@ class NotificationManagerImpl @Inject constructor(
                 notification
                         .setLargeIcon(avatar)
                         .setContentTitle(conversation.getTitle())
-                        .setContentText(context.resources.getQuantityString(
-                                R.plurals.notification_new_messages, messages.size, messages.size))
+                        .setContentText(
+                            nameModeLine?.takeIf { it.isNotBlank() } ?: quantityString
+                        )
             }
 
             Preferences.NOTIFICATION_PREVIEWS_NONE -> {
                 notification
                         .setContentTitle(context.getString(R.string.app_name))
-                        .setContentText(context.resources.getQuantityString(
-                                R.plurals.notification_new_messages, messages.size, messages.size))
+                        .setContentText(quantityString)
             }
         }
 
@@ -278,8 +378,9 @@ class NotificationManagerImpl @Inject constructor(
             notification.addPerson(recipient.toPerson(context, colors))
         }
 
-        // Add the action buttons
+        // Add the action buttons (skip on rule preview — actions target real unread state)
         val actionLabels = context.resources.getStringArray(R.array.notification_actions)
+        if (!isPreview) {
         listOf(prefs.notifAction1, prefs.notifAction2, prefs.notifAction3)
                 .map { preference -> preference.get() }
                 .distinct()
@@ -365,8 +466,9 @@ class NotificationManagerImpl @Inject constructor(
                     }
                 }
                 .forEach { notification.addAction(it) }
+        }
 
-        if (prefs.qkreply.get()) {
+        if (!isPreview && prefs.qkreply.get()) {
             notification.priority = NotificationCompat.PRIORITY_DEFAULT
 
             val intent = Intent(context, QkReplyActivity::class.java)
@@ -377,7 +479,7 @@ class NotificationManagerImpl @Inject constructor(
         }
         val sc = shortcutManager.getOrCreateShortcut(threadId)
         notification.setShortcutInfo(sc)
-        notificationManager.notify(threadId.toInt(), notification.build())
+        notificationManager.notify(notifyId, notification.build())
 
         // Wake screen
         if (prefs.wakeScreen(threadId).get()) {
@@ -407,7 +509,10 @@ class NotificationManagerImpl @Inject constructor(
 
         val threadId = conversation.id
 
-        val contentIntent = Intent(context, ComposeActivity::class.java).putExtra("threadId", threadId)
+        val contentIntent = Intent(context, ComposeActivity::class.java).apply {
+            putExtra("threadId", threadId)
+            putExtra(ComposeActivity.EXTRA_RETURN_TO_PREVIOUS_APP, true)
+        }
         val taskStackBuilder = TaskStackBuilder.create(context)
             .addParentStack(ComposeActivity::class.java)
             .addNextIntent(contentIntent)

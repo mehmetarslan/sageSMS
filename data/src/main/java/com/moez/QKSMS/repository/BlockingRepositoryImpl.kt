@@ -23,6 +23,7 @@ import dev.octoshrimpy.quik.model.BlockedNumber
 import dev.octoshrimpy.quik.util.PhoneNumberUtils
 import io.realm.Realm
 import io.realm.RealmResults
+import java.util.regex.Pattern
 import javax.inject.Inject
 
 class BlockingRepositoryImpl @Inject constructor(
@@ -66,7 +67,29 @@ class BlockingRepositoryImpl @Inject constructor(
         return Realm.getDefaultInstance().use { realm ->
             realm.where(BlockedNumber::class.java)
                     .findAll()
-                    .any { number -> phoneNumberUtils.compare(number.address, address) }
+                    .any { number -> doesPatternMatch(number.address, address) }
+        }
+    }
+
+    override fun getBlockedAddresses(): List<String> {
+        return Realm.getDefaultInstance().use { realm ->
+            realm.where(BlockedNumber::class.java)
+                .findAll()
+                .map { blockedNumber -> blockedNumber.address }
+        }
+    }
+
+    override fun replaceBlockedAddresses(addresses: List<String>) {
+        Realm.getDefaultInstance().use { realm ->
+            val normalized = addresses
+                .map { address -> address.trim() }
+                .filter { address -> address.isNotEmpty() }
+                .distinct()
+
+            realm.executeTransaction {
+                realm.where(BlockedNumber::class.java).findAll().deleteAllFromRealm()
+                realm.insert(normalized.mapIndexed { index, value -> BlockedNumber(index.toLong(), value) })
+            }
         }
     }
 
@@ -97,6 +120,31 @@ class BlockingRepositoryImpl @Inject constructor(
                         .findAll()
                         .deleteAllFromRealm()
             }
+        }
+    }
+
+    private fun doesPatternMatch(blockedValue: String, incomingAddress: String): Boolean {
+        val normalizedBlockedValue = blockedValue.trim()
+        val normalizedIncoming = incomingAddress.trim()
+        if (normalizedBlockedValue.isEmpty() || normalizedIncoming.isEmpty()) return false
+
+        return when {
+            normalizedBlockedValue.startsWith("regex:", ignoreCase = true) -> {
+                val regexValue = normalizedBlockedValue.substringAfter(':').trim()
+                if (regexValue.isEmpty()) false
+                else runCatching { Regex(regexValue).matches(normalizedIncoming) }.getOrDefault(false)
+            }
+            normalizedBlockedValue.contains('*') -> {
+                val wildcardRegex = buildString {
+                    append("^")
+                    normalizedBlockedValue.forEach { char ->
+                        if (char == '*') append(".*") else append(Pattern.quote(char.toString()))
+                    }
+                    append("$")
+                }
+                runCatching { Regex(wildcardRegex).matches(normalizedIncoming) }.getOrDefault(false)
+            }
+            else -> phoneNumberUtils.compare(normalizedBlockedValue, normalizedIncoming)
         }
     }
 

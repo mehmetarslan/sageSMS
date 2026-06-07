@@ -18,7 +18,7 @@
   -->
 <resources>
 
-    <string name="app_name" translatable="false">QUIK</string>
+    <string name="app_name" translatable="false">SageSMS</string>
 
     <string name="shortcut_compose_long_label">New conversation</string>
     <string name="shortcut_compose_short_label">Compose</string>
@@ -148,6 +148,54 @@
     <string name="compose_menu_copy">Copy text</string>
     <string name="compose_menu_share">Share text</string>
     <string name="compose_menu_forward">Forward</string>
+    <string name="compose_menu_notification_customize">Customize notification</string>
+    <string name="compose_menu_notification_rule_preview">Preview notification (rules)</string>
+    <string name="notification_rule_preview_subtext">Rule preview</string>
+    <string name="notification_rule_preview_need_permission">Turn on notifications for this app to preview.</string>
+    <string name="notification_rule_preview_message_missing">Could not load that message for preview.</string>
+    <string name="notification_rule_preview_no_conversation">Could not load the conversation for preview.</string>
+    <string name="notification_rule_preview_failed">Could not show the preview notification.</string>
+    <string name="notification_customize_title">Notification</string>
+    <string name="notification_customize_pick_title">Select a message</string>
+    <string name="notification_customize_edit_title">Edit rule</string>
+    <string name="notification_customize_body_label">Sample message</string>
+    <string name="notification_customize_search_label">Search sample (select from message)</string>
+    <string name="notification_customize_search_hint">Highlight text from the sample message, then tap \"Use selection as search\"</string>
+    <string name="notification_customize_display_label">Extract sample (select inside search text)</string>
+    <string name="notification_customize_display_hint">Highlight the dynamic part inside the search text, then tap \"Use selection as extract\"</string>
+    <string name="notification_customize_prefix_label">Notification prefix (optional)</string>
+    <string name="notification_customize_prefix_hint">Example: Delivery code:</string>
+    <string name="notification_customize_apply_to_all">Apply regardless of sender</string>
+    <string name="notification_customize_use_selection_search">Use selection as search</string>
+    <string name="notification_customize_use_selection_extract">Use selection as extract</string>
+    <string name="notification_customize_save">Save</string>
+    <string name="notification_customize_error_empty">Set both search sample and extract sample</string>
+    <string name="notification_customize_error_not_in_body">Selected extract text must exist in search sample</string>
+    <string name="notification_customize_error_search_not_in_sample">The search text must appear in the sample</string>
+    <string name="notification_customize_error_extract_inside_search">Extract sample must be selected inside the search sample</string>
+    <string name="notification_customize_error_select_text">Select text first</string>
+    <string name="notification_customize_error_pick_message">Open this screen from a selected message that has text</string>
+    <string name="notification_customize_saved">Rule saved</string>
+    <string name="notification_rules_title">Notification rules</string>
+    <string name="notification_rules_summary">Manage global and sender-based notification extraction rules</string>
+    <string name="notification_rules_edit_title">Edit rule</string>
+    <string name="notification_rules_delete_title">Delete rule</string>
+    <string name="notification_rules_delete_body">Delete this notification rule?</string>
+    <string name="notification_rules_section_all">All (global)</string>
+    <string name="notification_rules_section_sender">Sender: %1$s</string>
+    <string name="notification_rules_add_title">Add new rule</string>
+    <string name="notification_rules_add_pick_conversation">Pick conversation flow</string>
+    <string name="notification_rules_add_global">Create global rule</string>
+    <string name="notification_rules_add_hint">Open a conversation, long-press one message, then tap \"Customize notification\".</string>
+    <string name="notification_rules_new_global_title">New global rule</string>
+    <string name="notification_rules_export_title">Export rules</string>
+    <string name="notification_rules_import_title">Import rules</string>
+    <string name="notification_rules_import_hint">Paste JSON array exported from rules list</string>
+    <string name="notification_rules_export_copied">Rules JSON copied to clipboard</string>
+    <string name="notification_rules_import_success">Imported %1$d rules</string>
+    <string name="notification_rules_import_error">Import failed. Please provide valid JSON.</string>
+    <string name="notification_rules_empty_section">- No rules yet -</string>
+    <string name="button_edit">Edit</string>
     <string name="compose_menu_show_status">Show status</string>
     <string name="compose_menu_delete">Delete</string>
     <string name="compose_menu_previous">Previous</string>
@@ -365,6 +413,15 @@
     <string name="blocked_numbers_dialog_title">Block texts from</string>
     <string name="blocked_numbers_dialog_hint">Phone number</string>
     <string name="blocked_numbers_dialog_block">Block</string>
+    <string name="blocked_numbers_pattern_info">Tip: Use * as wildcard (example: 0555*). For regex, prefix with regex: (example: regex:^90[0-9]{10}$).</string>
+    <string name="blocked_numbers_import_title">Import blocked numbers</string>
+    <string name="blocked_numbers_import_action">Import</string>
+    <string name="blocked_numbers_import_hint">Paste JSON array. Example: ["+905551112233", "0555*", "regex:^90[0-9]{10}$"]</string>
+    <string name="blocked_numbers_import_success">Imported %1$d blocked entries</string>
+    <string name="blocked_numbers_import_error">Import failed. Please provide a valid JSON array of text entries.</string>
+    <string name="blocked_numbers_export_title">Export blocked numbers</string>
+    <string name="blocked_numbers_export_copy">Copy JSON</string>
+    <string name="blocked_numbers_export_copied">Blocked numbers copied to clipboard</string>
 
     <string name="message_content_filters_title">Message content filters</string>
     <string name="message_content_filters_empty">Your message content filters will appear here</string>

@@ -112,6 +112,8 @@
             android:name=".feature.gallery.GalleryActivity"
             android:theme="@style/AppTheme.Black" />
         <activity android:name=".feature.conversationinfo.ConversationInfoActivity" />
+        <activity android:name=".feature.notificationcustomize.NotificationCustomizeActivity" />
+        <activity android:name=".feature.notificationcustomize.NotificationRulesActivity" />
         <activity android:name=".feature.notificationprefs.NotificationPrefsActivity" />
         <activity android:name=".feature.blocking.BlockingActivity" />
         <activity

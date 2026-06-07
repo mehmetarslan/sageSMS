@@ -75,6 +75,10 @@
         <item name="android:textColor">@color/textPrimary</item>
     </style>
 
+    <style name="AppTheme.Gallery" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:background">@color/black</item>
+    </style>
+
     <!-- Black mode. No changes needed when not in night theme -->
     <style name="AppTheme.Black" />
     <style name="AppThemeDialog.Black" />

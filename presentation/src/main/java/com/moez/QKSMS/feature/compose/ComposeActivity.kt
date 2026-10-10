@@ -43,6 +43,10 @@ import android.view.DragEvent.ACTION_DROP
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.WindowManager
+import android.view.inputmethod.EditorInfo
+import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -120,6 +124,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val chipDeletedIntent: Subject<Recipient> by lazy { chipsAdapter.chipDeleted }
     override val menuReadyIntent: Observable<Unit> = menu.map { }
     override val optionsItemIntent: Subject<Int> = PublishSubject.create()
+    override val searchQueryIntent: Subject<String> = PublishSubject.create()
     override val contextItemIntent: Subject<MenuItem> = PublishSubject.create()
     override val scheduleAction: Subject<Boolean> = PublishSubject.create()
     override val sendAsGroupIntent by lazy { binding.sendAsGroupSwitch.clicks() }
@@ -431,6 +436,8 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
         // Don't set the adapters unless needed
         if (state.editingMode && binding.chips.adapter == null) binding.chips.adapter = chipsAdapter
 
+        binding.toolbar.menu.findItem(R.id.search)?.isVisible = !state.editingMode && state.selectedMessages == 0
+                && state.query.isEmpty()
         binding.toolbar.menu.findItem(R.id.viewScheduledMessages)?.isVisible = !state.editingMode && state.selectedMessages == 0
                 && state.query.isEmpty() && state.hasScheduledMessages
         binding.toolbar.menu.findItem(R.id.select_all)?.isVisible = !state.editingMode && (messageAdapter.itemCount > 1) && state.selectedMessages != 0
@@ -571,6 +578,43 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
             .setMessage(details)
             .setCancelable(true)
             .show()
+    }
+
+    override fun showSearchDialog(currentQuery: String) {
+        val dp = resources.displayMetrics.density
+        val input = EditText(this).apply {
+            hint = getString(R.string.compose_search_hint)
+            setSingleLine()
+            imeOptions = EditorInfo.IME_ACTION_SEARCH
+            setText(currentQuery)
+            setSelection(text.length)
+        }
+        val container = FrameLayout(this).apply {
+            setPadding((20 * dp).toInt(), (8 * dp).toInt(), (20 * dp).toInt(), 0)
+            addView(input)
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(R.string.compose_menu_search)
+            .setView(container)
+            .setPositiveButton(R.string.compose_search_action) { _, _ ->
+                searchQueryIntent.onNext(input.text.toString().trim())
+            }
+            .setNegativeButton(R.string.button_cancel, null)
+            .create()
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                searchQueryIntent.onNext(input.text.toString().trim())
+                dialog.dismiss()
+                true
+            } else false
+        }
+        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+        dialog.show()
+        input.requestFocus()
+    }
+
+    override fun showSearchNoResults() {
+        Toast.makeText(this, R.string.compose_search_no_results, Toast.LENGTH_SHORT).show()
     }
 
     override fun showMessageLinkAskDialog(uri: Uri) {

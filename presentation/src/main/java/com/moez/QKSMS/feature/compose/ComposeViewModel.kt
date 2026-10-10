@@ -245,14 +245,24 @@ class ComposeViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .subscribe { title -> newState { copy(conversationtitle = title) } }
 
-        disposables += conversation
-                .map { conversation -> conversation.id }
-                .distinctUntilChanged()
-                .withLatestFrom(state) { id, state -> messageRepo.getMessages(id, state.query) }
-                .switchMap { messages -> messages.asObservable() }
-                .takeUntil(state.map { it.query }.filter { it.isEmpty() })
-                .filter { messages -> messages.isLoaded }
-                .filter { messages -> messages.isValid }
+        // Search results follow the query, so a search can be started or changed inside the conversation.
+        // Matching is done in Kotlin because Realm's case-insensitive contains only covers Latin-1 (ş, ğ, İ...)
+        disposables += Observables
+                .combineLatest(
+                        conversation.map { conversation -> conversation.id }.distinctUntilChanged(),
+                        state.map { state -> state.query }.distinctUntilChanged())
+                .observeOn(AndroidSchedulers.mainThread())
+                .switchMap { (threadId, query) ->
+                    if (query.isEmpty()) {
+                        Observable.just(listOf())
+                    } else {
+                        messageRepo.getMessages(threadId).asObservable()
+                                .filter { messages -> messages.isLoaded && messages.isValid }
+                                .map { messages ->
+                                    messages.filter { message -> message.getText().contains(query, ignoreCase = true) }
+                                }
+                    }
+                }
                 .subscribe(searchResults::onNext)
 
         // on conversation change/init, work out how many non-me participants of the conversation
@@ -273,8 +283,11 @@ class ComposeViewModel @Inject constructor(
             }
 
         disposables += Observables.combineLatest(searchSelection, searchResults) { selected, messages ->
-            if (selected == -1L) {
-                messages.lastOrNull()?.let { message -> searchSelection.onNext(message.id) }
+            if (messages.isEmpty()) {
+                newState { copy(searchSelectionPosition = 0, searchResults = 0) }
+            } else if (messages.none { message -> message.id == selected }) {
+                // New query (or nothing selected yet): jump to the newest match
+                searchSelection.onNext(messages.last().id)
             } else {
                 val position = messages.indexOfFirst { it.id == selected } + 1
                 newState { copy(searchSelectionPosition = position, searchResults = messages.size) }
@@ -597,6 +610,25 @@ class ComposeViewModel @Inject constructor(
                 .filter { it == R.id.clear }
                 .autoDisposable(view.scope())
                 .subscribe { newState { copy(query = "", searchSelectionId = -1) } }
+
+        // Search inside this conversation
+        view.optionsItemIntent
+                .filter { it == R.id.search }
+                .withLatestFrom(state) { _, state -> state.query }
+                .autoDisposable(view.scope())
+                .subscribe(view::showSearchDialog)
+
+        view.searchQueryIntent
+                .autoDisposable(view.scope())
+                .subscribe { query -> newState { copy(query = query, searchSelectionId = -1) } }
+
+        // Tell the user when a search finds nothing (once per query, not on every new message)
+        searchResults
+                .withLatestFrom(state) { results, state -> state.query.takeIf { results.isEmpty() }.orEmpty() }
+                .distinctUntilChanged()
+                .filter { query -> query.isNotEmpty() }
+                .autoDisposable(view.scope())
+                .subscribe { view.showSearchNoResults() }
 
         // message part context menu item selected - save
         view.contextItemIntent
@@ -1302,6 +1334,9 @@ class ComposeViewModel @Inject constructor(
                 .withLatestFrom(state) { _, state ->
                     when {
                         state.selectedMessages > 0 -> view.clearSelection()
+                        // A search started inside the conversation closes first; one opened from the inbox search leaves
+                        state.query.isNotEmpty() && query.isEmpty() ->
+                            newState { copy(query = "", searchSelectionId = -1) }
                         returnToPreviousAppOnComposeBack -> view.moveSmsTaskBehindForegroundApp()
                         else -> newState { copy(hasError = true) }
                     }

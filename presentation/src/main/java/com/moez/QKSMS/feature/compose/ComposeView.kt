@@ -48,6 +48,7 @@ interface ComposeView : QkView<ComposeState> {
     val chipDeletedIntent: Subject<Recipient>
     val menuReadyIntent: Observable<Unit>
     val optionsItemIntent: Observable<Int>
+    val searchQueryIntent: Observable<String>
     val contextItemIntent: Observable<MenuItem>
     val sendAsGroupIntent: Observable<Unit>
     val messagePartClickIntent: Subject<Long>
@@ -97,6 +98,8 @@ interface ComposeView : QkView<ComposeState> {
     fun toggleSelectAll()
     fun expandMessages(messageIds: List<Long>, expand: Boolean)
     fun showDetails(details: String)
+    fun showSearchDialog(currentQuery: String)
+    fun showSearchNoResults()
     fun showMessageLinkAskDialog(uri: Uri)
     fun requestDefaultSms()
     fun requestStoragePermission()

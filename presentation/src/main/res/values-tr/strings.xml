@@ -90,6 +90,10 @@
     <string name="compose_number_picker_always">Her zaman</string>
     <string name="compose_title_selected">%d Seçili</string>
     <string name="compose_subtitle_results">%1$d / %2$d sonuçlar</string>
+    <string name="compose_menu_search">Sohbette ara</string>
+    <string name="compose_search_hint">Mesajlarda ara</string>
+    <string name="compose_search_action">Ara</string>
+    <string name="compose_search_no_results">Mesaj bulunamadı</string>
     <string name="compose_send_group_title">Grup iletisi olarak gönder</string>
     <string name="compose_send_group_summary">Alıcılar ve yanıtlar herkese görünür olacak</string>
     <string name="compose_messages_empty">Senin konuşma başlıyor. Güzel bir şey söyle!</string>

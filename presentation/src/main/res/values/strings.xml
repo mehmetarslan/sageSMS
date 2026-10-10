@@ -133,6 +133,10 @@
     <string name="compose_number_picker_always">Always</string>
     <string name="compose_title_selected">%d selected</string>
     <string name="compose_subtitle_results">%1$d of %2$d results</string>
+    <string name="compose_menu_search">Search in conversation</string>
+    <string name="compose_search_hint">Search messages</string>
+    <string name="compose_search_action">Search</string>
+    <string name="compose_search_no_results">No messages found</string>
     <string name="compose_send_group_title">Send as group message</string>
     <string name="compose_send_group_summary_on">Recipients and replies will be visible to everyone</string>
     <string name="compose_send_group_summary_off">Messages will be sent separately to all recipients</string>

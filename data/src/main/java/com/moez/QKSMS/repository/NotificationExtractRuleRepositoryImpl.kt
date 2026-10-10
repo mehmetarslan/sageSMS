@@ -69,28 +69,32 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
                 // Sender-specific rules win over global ones
                 .sortedBy { r -> r.applyToAllSenders || r.address == GLOBAL_RULE_ADDRESS }
                 .asSequence()
-                .mapNotNull { rule ->
-                    if (rule.searchText.isEmpty()) {
-                        return@mapNotNull null
-                    }
-                    when (rule.extractionMode) {
-                        NotificationExtractionModes.INDEXED_SUBSTRING -> {
-                            extractByIndexedPattern(
-                                body = fullBody,
-                                searchText = rule.searchText,
-                                leftAnchor = rule.leftAnchor,
-                                rightAnchor = rule.rightAnchor,
-                                extractLength = rule.extractLength
-                            )?.let { extracted ->
-                                val prefix = rule.notificationPrefix.trim()
-                                if (prefix.isBlank()) extracted else "$prefix $extracted"
-                            }
-                        }
-                        else -> null
-                    }
-                }
+                .mapNotNull { rule -> applyRule(rule, fullBody) }
                 .firstOrNull { it.isNotBlank() }
         }
+    }
+
+    override fun applyRule(rule: NotificationExtractRule, fullBody: String): String? {
+        if (rule.searchText.isEmpty() || fullBody.isEmpty()) {
+            return null
+        }
+        val extracted = when (rule.extractionMode) {
+            NotificationExtractionModes.INDEXED_SUBSTRING -> extractByIndexedPattern(
+                body = fullBody,
+                searchText = rule.searchText,
+                leftAnchor = rule.leftAnchor,
+                rightAnchor = rule.rightAnchor,
+                extractLength = rule.extractLength
+            )
+            else -> extractByAnchors(
+                body = fullBody,
+                leftAnchor = rule.leftAnchor,
+                rightAnchor = rule.rightAnchor,
+                mode = rule.extractionMode
+            )
+        } ?: return null
+        val prefix = rule.notificationPrefix.trim()
+        return if (prefix.isBlank()) extracted else "$prefix $extracted"
     }
 
     override fun getRules(addresses: Collection<String>): List<NotificationExtractRule> {
@@ -213,6 +217,44 @@ internal fun extractByIndexedPattern(
     }
     return null
 }
+
+/**
+ * Finds a value of any length between [leftAnchor] and [rightAnchor]. Anchors are matched
+ * case-insensitively with flexible whitespace, so "123 TL" and "123TL" both match " TL".
+ */
+internal fun extractByAnchors(
+    body: String,
+    leftAnchor: String,
+    rightAnchor: String,
+    mode: Int
+): String? {
+    val left = leftAnchor.trim()
+    val right = rightAnchor.trim()
+    val value = when (mode) {
+        // Lookbehind keeps the match from starting in the middle of a longer number
+        NotificationExtractionModes.NUMBER -> """(?<![\d.,])\d(?:[\d.,]*\d)?"""
+        NotificationExtractionModes.WORD -> """[\p{L}\p{N}]+(?:[-_/][\p{L}\p{N}]+)*"""
+        NotificationExtractionModes.UNTIL_RIGHT_ANCHOR -> {
+            if (left.isEmpty() && right.isEmpty()) return null
+            if (right.isEmpty()) """[^\n]+""" else """[^\n]+?"""
+        }
+        else -> return null
+    }
+    val pattern = buildString {
+        append("(?iu)")
+        if (left.isNotEmpty()) append(anchorPattern(left)).append("""\s*""")
+        append("(").append(value).append(")")
+        if (right.isNotEmpty()) append("""\s*""").append(anchorPattern(right))
+    }
+    return runCatching { Regex(pattern).find(body) }.getOrNull()
+        ?.groupValues
+        ?.get(1)
+        ?.trim()
+        ?.takeIf { it.isNotEmpty() }
+}
+
+private fun anchorPattern(anchor: String): String =
+    anchor.split(Regex("""\s+""")).joinToString("""\s+""") { part -> Regex.escape(part) }
 
 private fun String.occurrencesOf(needle: String): List<Int> {
     val positions = mutableListOf<Int>()

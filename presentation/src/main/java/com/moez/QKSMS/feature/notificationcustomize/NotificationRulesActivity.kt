@@ -162,6 +162,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_SEARCH, rule.searchText)
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_EXTRACT, extractPreview(rule))
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_EXTRACT_START, rule.leftAnchor.length)
+                .putExtra(NotificationCustomizeActivity.EXTRA_RULE_MODE, rule.extractionMode)
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_PREFIX, rule.notificationPrefix)
         )
     }
@@ -202,9 +203,10 @@ class NotificationRulesActivity : QkThemedActivity() {
     }
 
     private fun showGlobalCreateDialog() {
+        val dp = resources.displayMetrics.density
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 24, 48, 0)
+            setPadding((20 * dp).toInt(), (8 * dp).toInt(), (20 * dp).toInt(), 0)
         }
         val searchInput = EditText(this).apply { hint = getString(R.string.notification_customize_search_label) }
         val extractInput = EditText(this).apply { hint = getString(R.string.notification_customize_display_label) }
@@ -244,6 +246,7 @@ class NotificationRulesActivity : QkThemedActivity() {
         if (start < 0) return
         val left = search.substring(0, start)
         val right = search.substring(start + extract.length)
+        val mode = NotificationExtractionModes.suggestFor(extract)
         writeThenRefresh({
             if (id >= 0) {
                 rulesRepository.updateRule(
@@ -254,7 +257,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                     searchText = search,
                     leftAnchor = left,
                     rightAnchor = right,
-                    extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                    extractionMode = mode,
                     extractLength = extract.length,
                     notificationPrefix = prefix
                 )
@@ -266,7 +269,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                     searchText = search,
                     leftAnchor = left,
                     rightAnchor = right,
-                    extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                    extractionMode = mode,
                     extractLength = extract.length,
                     notificationPrefix = prefix
                 )
@@ -287,6 +290,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                     put("leftAnchor", rule.leftAnchor)
                     put("rightAnchor", rule.rightAnchor)
                     put("extractLength", rule.extractLength)
+                    put("extractionMode", rule.extractionMode)
                     put("notificationPrefix", rule.notificationPrefix)
                 }
             )
@@ -326,6 +330,10 @@ class NotificationRulesActivity : QkThemedActivity() {
                 val leftAnchor = obj.optString("leftAnchor", "")
                 val rightAnchor = obj.optString("rightAnchor", "")
                 val extractLength = obj.optInt("extractLength", 0)
+                // Exports made before value types existed are fixed-length rules
+                val extractionMode = obj.optInt("extractionMode", NotificationExtractionModes.INDEXED_SUBSTRING)
+                    .takeIf { mode -> mode in NotificationExtractionModes.ALL }
+                    ?: NotificationExtractionModes.INDEXED_SUBSTRING
                 val notificationPrefix = obj.optString("notificationPrefix", "").trim()
                 if (address.isEmpty() || searchText.isBlank() || extractLength <= 0) continue
                 rulesRepository.saveRule(
@@ -335,7 +343,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                     searchText = searchText,
                     leftAnchor = leftAnchor,
                     rightAnchor = rightAnchor,
-                    extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                    extractionMode = extractionMode,
                     extractLength = extractLength,
                     notificationPrefix = notificationPrefix
                 )
@@ -478,13 +486,17 @@ class NotificationRulesActivity : QkThemedActivity() {
         private val extractView: TextView = view.findViewById(R.id.extract)
 
         fun bind(rule: NotificationExtractRule, addressLabel: String) {
-            addressView.text = addressLabel
-            searchView.text = rule.searchText
-            extractView.text = if (rule.notificationPrefix.isBlank()) {
-                "len=${rule.extractLength}"
-            } else {
-                "${rule.notificationPrefix} • len=${rule.extractLength}"
+            val context = itemView.context
+            val placeholder = when (rule.extractionMode) {
+                NotificationExtractionModes.NUMBER -> "‹${context.getString(R.string.notification_rules_mode_number)}›"
+                NotificationExtractionModes.WORD -> "‹${context.getString(R.string.notification_rules_mode_word)}›"
+                NotificationExtractionModes.UNTIL_RIGHT_ANCHOR -> "‹${context.getString(R.string.notification_rules_mode_until_right)}›"
+                else -> "•".repeat(rule.extractLength.coerceIn(1, 12))
             }
+            addressView.text = addressLabel
+            // e.g. "Kartinizdan ‹number› TL harcama" → "Harcama: …"
+            searchView.text = "${rule.leftAnchor}$placeholder${rule.rightAnchor}".trim()
+            extractView.text = "→ ${rule.notificationPrefix.trim()} …".replace("  ", " ")
         }
     }
 

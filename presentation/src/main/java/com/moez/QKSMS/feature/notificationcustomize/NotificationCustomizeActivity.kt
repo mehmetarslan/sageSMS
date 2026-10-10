@@ -23,6 +23,9 @@ import android.text.Selection
 import android.text.Spannable
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.StringRes
+import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
@@ -30,7 +33,9 @@ import dev.octoshrimpy.quik.R
 import dev.octoshrimpy.quik.common.base.QkThemedActivity
 import dev.octoshrimpy.quik.databinding.ActivityNotificationCustomizeBinding
 import dev.octoshrimpy.quik.model.Message
+import dev.octoshrimpy.quik.model.NotificationExtractRule
 import dev.octoshrimpy.quik.model.NotificationExtractionModes
+import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.repository.MessageRepository
 import dev.octoshrimpy.quik.repository.NotificationExtractRuleRepository
 import io.reactivex.Completable
@@ -54,6 +59,9 @@ class NotificationCustomizeActivity : QkThemedActivity() {
     @Inject
     lateinit var ruleRepository: NotificationExtractRuleRepository
 
+    @Inject
+    lateinit var conversationRepository: ConversationRepository
+
     private lateinit var binding: ActivityNotificationCustomizeBinding
     private var convThreadId: Long = 0
     private var sampleAddress: String = ""
@@ -61,6 +69,8 @@ class NotificationCustomizeActivity : QkThemedActivity() {
     private var extractStartInSearch: Int = -1
     private var extractLength: Int = 0
     private var editRuleId: Long = -1L
+    /** Bodies of the sender's latest incoming messages, newest first, used to test the rule live. */
+    private var recentBodies: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         AndroidInjection.inject(this)
@@ -83,6 +93,9 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         binding.selectSearchButton.setOnClickListener { copySelectionFromSample() }
         binding.selectExtractButton.setOnClickListener { copySelectionFromSearch() }
         binding.saveButton.setOnClickListener { onSave() }
+        binding.extractionMode.setOnCheckedChangeListener { _, _ -> updatePreview() }
+        binding.prefixText.doAfterTextChanged { updatePreview() }
+        binding.searchText.doAfterTextChanged { updatePreview() }
 
         if (isEditMode) {
             val address = intent.getStringExtra(EXTRA_RULE_ADDRESS).orEmpty()
@@ -92,8 +105,12 @@ class NotificationCustomizeActivity : QkThemedActivity() {
             val extract = intent.getStringExtra(EXTRA_RULE_EXTRACT).orEmpty()
             val prefix = intent.getStringExtra(EXTRA_RULE_PREFIX).orEmpty()
             val extractStart = intent.getIntExtra(EXTRA_RULE_EXTRACT_START, -1)
+            val mode = intent.getIntExtra(EXTRA_RULE_MODE, NotificationExtractionModes.INDEXED_SUBSTRING)
             openEditorForExistingRule(address, sample, search, extract, extractStart, prefix, applyToAll)
+            setMode(mode)
             restoreSelection(savedInstanceState)
+            loadRecentBodies()
+            updatePreview()
             return
         }
 
@@ -110,6 +127,8 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         }
         openEditorFor(message)
         restoreSelection(savedInstanceState)
+        loadRecentBodies()
+        updatePreview()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -134,6 +153,7 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         binding.prefixText.setText("")
         binding.applyToAllSenders.isChecked = false
         binding.selectSearchButton.isEnabled = true
+        setMode(NotificationExtractionModes.NUMBER)
         extractStartInSearch = -1
         extractLength = 0
     }
@@ -167,34 +187,111 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         }
     }
 
-    private fun onSave() {
+    /** Either a rule built from the current inputs, or the string resource explaining what is missing. */
+    private sealed class Draft {
+        class Ready(val rule: NotificationExtractRule) : Draft()
+        class Invalid(@StringRes val error: Int) : Draft()
+    }
+
+    private fun buildDraft(): Draft {
         val rawSearch = binding.searchText.text?.toString().orEmpty()
         val search = rawSearch.trim()
         // extractStartInSearch was measured on the untrimmed field, so shift it past the trimmed leading whitespace
         val extractStart = extractStartInSearch - (rawSearch.length - rawSearch.trimStart().length)
         val display = binding.displayText.text?.toString().orEmpty()
-        val prefix = binding.prefixText.text?.toString()?.trim().orEmpty()
-        val applyToAll = binding.applyToAllSenders.isChecked
         if (search.isEmpty() || display.isEmpty() || extractStartInSearch < 0 || extractLength <= 0) {
-            Toast.makeText(this, R.string.notification_customize_error_empty, Toast.LENGTH_LONG).show()
-            return
+            return Draft.Invalid(R.string.notification_customize_error_empty)
         }
         if (extractStart < 0 || extractStart + extractLength > search.length) {
-            Toast.makeText(this, R.string.notification_customize_error_extract_inside_search, Toast.LENGTH_LONG).show()
-            return
+            return Draft.Invalid(R.string.notification_customize_error_extract_inside_search)
         }
         if (editRuleId < 0L && !sampleBody.contains(search)) {
-            Toast.makeText(this, R.string.notification_customize_error_search_not_in_sample, Toast.LENGTH_LONG).show()
+            return Draft.Invalid(R.string.notification_customize_error_search_not_in_sample)
+        }
+        if (search.substring(extractStart, extractStart + extractLength) != display) {
+            return Draft.Invalid(R.string.notification_customize_error_extract_inside_search)
+        }
+        return Draft.Ready(
+            NotificationExtractRule(
+                id = editRuleId,
+                address = sampleAddress,
+                applyToAllSenders = binding.applyToAllSenders.isChecked,
+                sampleBody = sampleBody,
+                searchText = search,
+                leftAnchor = search.substring(0, extractStart),
+                rightAnchor = search.substring(extractStart + extractLength),
+                extractionMode = selectedMode(),
+                extractLength = extractLength,
+                notificationPrefix = binding.prefixText.text?.toString()?.trim().orEmpty()
+            )
+        )
+    }
+
+    private fun selectedMode(): Int = when (binding.extractionMode.checkedRadioButtonId) {
+        R.id.modeNumber -> NotificationExtractionModes.NUMBER
+        R.id.modeWord -> NotificationExtractionModes.WORD
+        R.id.modeUntilRight -> NotificationExtractionModes.UNTIL_RIGHT_ANCHOR
+        else -> NotificationExtractionModes.INDEXED_SUBSTRING
+    }
+
+    private fun setMode(mode: Int) {
+        binding.extractionMode.check(
+            when (mode) {
+                NotificationExtractionModes.NUMBER -> R.id.modeNumber
+                NotificationExtractionModes.WORD -> R.id.modeWord
+                NotificationExtractionModes.UNTIL_RIGHT_ANCHOR -> R.id.modeUntilRight
+                else -> R.id.modeFixedLength
+            }
+        )
+    }
+
+    private fun loadRecentBodies() {
+        val threadId = convThreadId.takeIf { it != 0L }
+            ?: sampleAddress.takeIf { it.isNotBlank() && it != GLOBAL_RULE_ADDRESS }
+                ?.let { address -> conversationRepository.getConversation(listOf(address))?.id }
+            ?: return
+        recentBodies = messageRepository.getMessagesSync(threadId)
+            .filter { message -> !message.isMe() && message.hasNonWhitespaceText() }
+            .takeLast(RECENT_MESSAGE_COUNT)
+            .reversed()
+            .map { message -> message.getSummary() }
+    }
+
+    private fun updatePreview() {
+        val rule = (buildDraft() as? Draft.Ready)?.rule
+        binding.previewLine.text = when {
+            rule == null -> getString(R.string.notification_customize_preview_incomplete)
+            else -> ruleRepository.applyRule(rule, sampleBody)
+                ?: getString(R.string.notification_customize_preview_no_match)
+        }
+
+        binding.recentMatchesLabel.isVisible = recentBodies.isNotEmpty()
+        binding.recentMatches.isVisible = recentBodies.isNotEmpty()
+        if (rule == null || recentBodies.isEmpty()) {
+            binding.recentMatches.text = ""
             return
         }
-        val selectedFromSearch = search.substring(extractStart, extractStart + extractLength)
-        if (selectedFromSearch != display) {
-            Toast.makeText(this, R.string.notification_customize_error_extract_inside_search, Toast.LENGTH_LONG).show()
-            return
+        val results = recentBodies.map { body -> body to ruleRepository.applyRule(rule, body) }
+        val lines = results.map { (body, line) ->
+            if (line != null) "✓ $line"
+            else "✗ ${body.replace('\n', ' ').take(RECENT_SNIPPET_LENGTH)}…"
         }
-        val left = search.substring(0, extractStart)
-        val right = search.substring(extractStart + extractLength)
-        val ruleLength = extractLength
+        val summary = getString(
+            R.string.notification_customize_recent_summary,
+            results.count { (_, line) -> line != null },
+            results.size
+        )
+        binding.recentMatches.text = (listOf(summary) + lines).joinToString("\n")
+    }
+
+    private fun onSave() {
+        val rule = when (val draft = buildDraft()) {
+            is Draft.Invalid -> {
+                Toast.makeText(this, draft.error, Toast.LENGTH_LONG).show()
+                return
+            }
+            is Draft.Ready -> draft.rule
+        }
         binding.saveButton.isEnabled = false
         // Realm writes are not allowed on the UI thread; close the editor once the rule is committed
         Completable
@@ -202,27 +299,27 @@ class NotificationCustomizeActivity : QkThemedActivity() {
                 if (editRuleId >= 0L) {
                     ruleRepository.updateRule(
                         id = editRuleId,
-                        address = sampleAddress,
-                        applyToAllSenders = applyToAll,
-                        sampleBody = sampleBody,
-                        searchText = search,
-                        leftAnchor = left,
-                        rightAnchor = right,
-                        extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
-                        extractLength = ruleLength,
-                        notificationPrefix = prefix
+                        address = rule.address,
+                        applyToAllSenders = rule.applyToAllSenders,
+                        sampleBody = rule.sampleBody,
+                        searchText = rule.searchText,
+                        leftAnchor = rule.leftAnchor,
+                        rightAnchor = rule.rightAnchor,
+                        extractionMode = rule.extractionMode,
+                        extractLength = rule.extractLength,
+                        notificationPrefix = rule.notificationPrefix
                     )
                 } else {
                     ruleRepository.saveRule(
-                        address = sampleAddress,
-                        applyToAllSenders = applyToAll,
-                        sampleBody = sampleBody,
-                        searchText = search,
-                        leftAnchor = left,
-                        rightAnchor = right,
-                        extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
-                        extractLength = ruleLength,
-                        notificationPrefix = prefix
+                        address = rule.address,
+                        applyToAllSenders = rule.applyToAllSenders,
+                        sampleBody = rule.sampleBody,
+                        searchText = rule.searchText,
+                        leftAnchor = rule.leftAnchor,
+                        rightAnchor = rule.rightAnchor,
+                        extractionMode = rule.extractionMode,
+                        extractLength = rule.extractLength,
+                        notificationPrefix = rule.notificationPrefix
                     )
                 }
             }
@@ -250,6 +347,7 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         binding.displayText.setText("")
         extractStartInSearch = -1
         extractLength = 0
+        updatePreview()
     }
 
     private fun copySelectionFromSearch() {
@@ -272,6 +370,8 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         if (text is Spannable) {
             Selection.setSelection(text, s0, e0)
         }
+        setMode(NotificationExtractionModes.suggestFor(selected))
+        updatePreview()
     }
 
     private fun getSelectedText(textView: TextView): String? {
@@ -297,6 +397,10 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         const val EXTRA_RULE_GLOBAL = "ruleGlobal"
         const val EXTRA_RULE_SAMPLE_BODY = "ruleSampleBody"
         const val EXTRA_RULE_EXTRACT_START = "ruleExtractStart"
+        const val EXTRA_RULE_MODE = "ruleMode"
+        private const val GLOBAL_RULE_ADDRESS = "*"
+        private const val RECENT_MESSAGE_COUNT = 10
+        private const val RECENT_SNIPPET_LENGTH = 40
         private const val STATE_EXTRACT_START = "extractStart"
         private const val STATE_EXTRACT_LENGTH = "extractLength"
     }

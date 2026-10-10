@@ -24,5 +24,21 @@ open class NotificationExtractRule(
 ) : RealmObject()
 
 object NotificationExtractionModes {
+    /** Value has exactly [NotificationExtractRule.extractLength] characters (original behaviour). */
     const val INDEXED_SUBSTRING = 2
+    /** Any-length number between the anchors, e.g. amounts like 123 or 12.312,50. */
+    const val NUMBER = 3
+    /** Any-length run of letters/digits, e.g. codes like 4821 or AB12-CD. */
+    const val WORD = 4
+    /** Everything between the anchors (or to the end of the line without a right anchor). */
+    const val UNTIL_RIGHT_ANCHOR = 5
+
+    val ALL = listOf(NUMBER, WORD, UNTIL_RIGHT_ANCHOR, INDEXED_SUBSTRING)
+
+    /** Picks the value type that fits a highlighted sample value, e.g. "12.312,50" → [NUMBER]. */
+    fun suggestFor(value: String): Int = when {
+        value.trim().matches(Regex("""\d(?:[\d.,]*\d)?""")) -> NUMBER
+        value.trim().matches(Regex("""[\p{L}\p{N}]+(?:[-_/][\p{L}\p{N}]+)*""")) -> WORD
+        else -> UNTIL_RIGHT_ANCHOR
+    }
 }

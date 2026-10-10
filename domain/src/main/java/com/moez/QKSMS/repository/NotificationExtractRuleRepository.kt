@@ -32,6 +32,12 @@ interface NotificationExtractRuleRepository {
     fun getNotificationLine(address: String, fullBody: String): String?
 
     /**
+     * Applies a single (possibly unsaved) rule to [fullBody], ignoring its sender.
+     * @return the notification line the rule would produce, or null if it does not match
+     */
+    fun applyRule(rule: NotificationExtractRule, fullBody: String): String?
+
+    /**
      * Lists rules. If [addresses] is empty, returns all rules.
      */
     fun getRules(addresses: Collection<String> = emptyList()): List<NotificationExtractRule>

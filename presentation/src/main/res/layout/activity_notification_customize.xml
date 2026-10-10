@@ -94,6 +94,45 @@
                 android:layout_height="wrap_content"
                 android:paddingTop="12dp"
                 android:paddingBottom="4dp"
+                android:text="@string/notification_customize_mode_label" />
+
+            <RadioGroup
+                android:id="@+id/extractionMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/modeNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/notification_customize_mode_number" />
+
+                <RadioButton
+                    android:id="@+id/modeWord"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/notification_customize_mode_word" />
+
+                <RadioButton
+                    android:id="@+id/modeUntilRight"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/notification_customize_mode_until_right" />
+
+                <RadioButton
+                    android:id="@+id/modeFixedLength"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/notification_customize_mode_fixed" />
+
+            </RadioGroup>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:paddingBottom="4dp"
                 android:text="@string/notification_customize_prefix_label" />
 
             <dev.octoshrimpy.quik.common.widget.QkEditText
@@ -109,6 +148,38 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="@string/notification_customize_apply_to_all" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp"
+                android:text="@string/notification_customize_preview_label" />
+
+            <TextView
+                android:id="@+id/previewLine"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/notification_rule_row_bg"
+                android:padding="12dp"
+                android:textStyle="bold"
+                tools:text="Harcama: 12.312,50 TL" />
+
+            <TextView
+                android:id="@+id/recentMatchesLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="12dp"
+                android:paddingBottom="4dp"
+                android:text="@string/notification_customize_recent_label" />
+
+            <TextView
+                android:id="@+id/recentMatches"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="4dp"
+                android:textColor="?android:attr/textColorSecondary"
+                tools:text="✓ 12312\n✓ 123\n✗ Kampanya: yeni kart…" />
 
             <Button
                 android:id="@+id/saveButton"

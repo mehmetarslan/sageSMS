@@ -134,6 +134,8 @@ class BlockingRepositoryImpl @Inject constructor(
                 if (regexValue.isEmpty()) false
                 else runCatching { Regex(regexValue).matches(normalizedIncoming) }.getOrDefault(false)
             }
+            // A bare "*" would block every sender; require at least one literal character
+            normalizedBlockedValue.all { char -> char == '*' } -> false
             normalizedBlockedValue.contains('*') -> {
                 val wildcardRegex = buildString {
                     append("^")

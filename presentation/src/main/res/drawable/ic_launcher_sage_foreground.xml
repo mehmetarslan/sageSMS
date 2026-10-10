@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SageSMS launcher foreground: a sage-mode eye in a speech bubble.
+  Drawn on a 512 canvas that maps to the 72dp visible part of the 108dp adaptive layer.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="768"
+    android:viewportHeight="768">
+
+    <group
+        android:translateX="128"
+        android:translateY="128">
+
+        <group
+            android:pivotX="256"
+            android:pivotY="256"
+            android:scaleX="0.66"
+            android:scaleY="0.66"
+            android:translateY="12.6">
+
+            <!-- Speech bubble -->
+            <path
+                android:fillColor="#5B8266"
+                android:pathData="M256,90 C150,90 65,160 65,246 C65,292 85,330 120,358 C112,392 84,418 52,432 C104,434 150,414 182,386 C205,393 230,396 256,396 C362,396 447,326 447,246 C447,160 362,90 256,90 Z" />
+
+            <!-- Eye white -->
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M140,243 A116,80 0 1,0 372,243 A116,80 0 1,0 140,243 Z" />
+
+            <!-- Iris -->
+            <path
+                android:fillColor="#ECA82C"
+                android:strokeColor="#1C1E1D"
+                android:strokeWidth="7"
+                android:pathData="M186,243 A70,70 0 1,0 326,243 A70,70 0 1,0 186,243 Z" />
+
+            <!-- Iris ticks -->
+            <path
+                android:strokeColor="#8A5A12"
+                android:strokeWidth="3"
+                android:strokeLineCap="round"
+                android:pathData="M256,187 L256,196 M228,194 L232,202 M284,194 L280,202 M208,211 L215,217 M304,211 L297,217 M256,299 L256,290 M228,292 L232,284 M284,292 L280,284 M208,275 L215,269 M304,275 L297,269" />
+
+            <!-- Bar pupil -->
+            <path
+                android:fillColor="#1C1E1D"
+                android:pathData="M219,230 L293,230 A13,13 0 0,1 293,256 L219,256 A13,13 0 0,1 219,230 Z" />
+
+            <!-- Highlight -->
+            <path
+                android:fillColor="#FFFFFF"
+                android:pathData="M203,236 A11,11 0 1,0 225,236 A11,11 0 1,0 203,236 Z" />
+        </group>
+    </group>
+</vector>

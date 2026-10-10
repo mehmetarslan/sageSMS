@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Status bar icon: the launcher silhouette, cropped to the bubble so it fills the 24dp square. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="420"
+    android:viewportHeight="420">
+
+    <group
+        android:translateX="-39.5"
+        android:translateY="-52">
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M256,90 C150,90 65,160 65,246 C65,292 85,330 120,358 C112,392 84,418 52,432 C104,434 150,414 182,386 C205,393 230,396 256,396 C362,396 447,326 447,246 C447,160 362,90 256,90 Z M140,243 A116,80 0 1,0 372,243 A116,80 0 1,0 140,243 Z" />
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:fillType="evenOdd"
+            android:pathData="M196,243 A60,60 0 1,0 316,243 A60,60 0 1,0 196,243 Z M219,230 L293,230 A13,13 0 0,1 293,256 L219,256 A13,13 0 0,1 219,230 Z" />
+    </group>
+</vector>

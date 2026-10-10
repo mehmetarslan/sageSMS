@@ -129,6 +129,7 @@
     <string name="notification_customize_error_select_text">Önce metin seçin</string>
     <string name="notification_customize_error_pick_message">Bu ekranı metin içeren seçili bir iletiden açın</string>
     <string name="notification_customize_saved">Kural kaydedildi</string>
+    <string name="notification_customize_save_failed">Kural kaydedilemedi</string>
     <string name="notification_rules_title">Bildirim kuralları</string>
     <string name="notification_rules_summary">Genel ve gönderici bazlı bildirim extract kurallarını yönetin</string>
     <string name="notification_rules_edit_title">Kuralı düzenle</string>

@@ -28,7 +28,7 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
             return
         }
         Realm.getDefaultInstance().use { realm ->
-            realm.executeTransactionAsync { bgRealm ->
+            realm.executeTransaction { bgRealm ->
                 bgRealm.where(NotificationExtractRule::class.java)
                     .equalTo("address", trimmedAddress)
                     .equalTo("searchText", searchText)
@@ -66,7 +66,8 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
                 .filter { r ->
                     r.applyToAllSenders || r.address == GLOBAL_RULE_ADDRESS || phoneNumberUtils.compare(r.address, address)
                 }
-                .sortedByDescending { it.applyToAllSenders }
+                // Sender-specific rules win over global ones
+                .sortedBy { r -> r.applyToAllSenders || r.address == GLOBAL_RULE_ADDRESS }
                 .asSequence()
                 .mapNotNull { rule ->
                     if (rule.searchText.isEmpty()) {
@@ -111,7 +112,7 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
 
     override fun deleteRule(id: Long) {
         Realm.getDefaultInstance().use { realm ->
-            realm.executeTransactionAsync { bgRealm ->
+            realm.executeTransaction { bgRealm ->
                 bgRealm.where(NotificationExtractRule::class.java)
                     .equalTo("id", id)
                     .findAll()
@@ -135,7 +136,7 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
         val trimmedAddress = address.trim()
         if (trimmedAddress.isEmpty() || searchText.isEmpty()) return
         Realm.getDefaultInstance().use { realm ->
-            realm.executeTransactionAsync { bgRealm ->
+            realm.executeTransaction { bgRealm ->
                 bgRealm.where(NotificationExtractRule::class.java)
                     .equalTo("id", id)
                     .findAll()
@@ -178,18 +179,16 @@ internal fun extractByIndexedPattern(
         return null
     }
 
-    // Candidate starts where leftAnchor starts in incoming message.
+    // Candidate starts where leftAnchor starts in incoming message; without a left anchor,
+    // work back from each rightAnchor occurrence so the value can sit anywhere in the body.
     val starts = mutableListOf<Int>()
-    if (leftAnchor.isNotEmpty()) {
-        var from = 0
-        while (from < body.length) {
-            val p = body.indexOf(leftAnchor, from, ignoreCase = true)
-            if (p < 0) break
-            starts.add(p)
-            from = p + 1
-        }
-    } else {
-        starts.add(0)
+    when {
+        leftAnchor.isNotEmpty() -> body.occurrencesOf(leftAnchor).forEach { p -> starts.add(p) }
+        rightAnchor.isNotEmpty() -> body.occurrencesOf(rightAnchor)
+            .map { p -> p - extractLength }
+            .filter { start -> start >= 0 }
+            .forEach { start -> starts.add(start) }
+        else -> starts.add(0)
     }
 
     for (segmentStart in starts) {
@@ -213,4 +212,16 @@ internal fun extractByIndexedPattern(
         return segment.substring(extractStart, extractEnd)
     }
     return null
+}
+
+private fun String.occurrencesOf(needle: String): List<Int> {
+    val positions = mutableListOf<Int>()
+    var from = 0
+    while (from < length) {
+        val p = indexOf(needle, from, ignoreCase = true)
+        if (p < 0) break
+        positions.add(p)
+        from = p + 1
+    }
+    return positions
 }

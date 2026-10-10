@@ -14,6 +14,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.uber.autodispose.android.lifecycle.scope
+import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import dev.octoshrimpy.quik.R
 import dev.octoshrimpy.quik.common.Navigator
@@ -24,8 +26,12 @@ import dev.octoshrimpy.quik.model.NotificationExtractRule
 import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.repository.NotificationExtractRuleRepository
 import android.content.Intent
+import io.reactivex.Completable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import org.json.JSONArray
 import org.json.JSONObject
+import timber.log.Timber
 import javax.inject.Inject
 
 class NotificationRulesActivity : QkThemedActivity() {
@@ -94,13 +100,35 @@ class NotificationRulesActivity : QkThemedActivity() {
         adapter.submit(buildRows(rules, addressLabels))
     }
 
+    /**
+     * Realm writes are not allowed on the UI thread, so run [write] in the background and
+     * refresh the list once it has been committed.
+     */
+    private fun writeThenRefresh(
+        write: () -> Unit,
+        onError: (Throwable) -> Unit = {},
+        onSuccess: () -> Unit = {}
+    ) {
+        Completable.fromAction(write)
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(scope())
+            .subscribe({
+                refresh()
+                onSuccess()
+            }, { e ->
+                Timber.e(e, "Notification rule write failed")
+                refresh()
+                onError(e)
+            })
+    }
+
     private fun deleteRule(id: Long) {
         AlertDialog.Builder(this)
             .setTitle(R.string.notification_rules_delete_title)
             .setMessage(R.string.notification_rules_delete_body)
             .setPositiveButton(R.string.button_delete) { _, _ ->
-                rulesRepository.deleteRule(id)
-                refresh()
+                writeThenRefresh({ rulesRepository.deleteRule(id) })
             }
             .setNegativeButton(R.string.button_cancel, null)
             .show()
@@ -133,6 +161,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_SAMPLE_BODY, rule.sampleBody)
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_SEARCH, rule.searchText)
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_EXTRACT, extractPreview(rule))
+                .putExtra(NotificationCustomizeActivity.EXTRA_RULE_EXTRACT_START, rule.leftAnchor.length)
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_PREFIX, rule.notificationPrefix)
         )
     }
@@ -215,33 +244,34 @@ class NotificationRulesActivity : QkThemedActivity() {
         if (start < 0) return
         val left = search.substring(0, start)
         val right = search.substring(start + extract.length)
-        if (id > 0) {
-            rulesRepository.updateRule(
-                id = id,
-                address = address,
-                applyToAllSenders = applyToAllSenders,
-                sampleBody = sampleBody,
-                searchText = search,
-                leftAnchor = left,
-                rightAnchor = right,
-                extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
-                extractLength = extract.length,
-                notificationPrefix = prefix
-            )
-        } else {
-            rulesRepository.saveRule(
-                address = address,
-                applyToAllSenders = applyToAllSenders,
-                sampleBody = sampleBody,
-                searchText = search,
-                leftAnchor = left,
-                rightAnchor = right,
-                extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
-                extractLength = extract.length,
-                notificationPrefix = prefix
-            )
-        }
-        refresh()
+        writeThenRefresh({
+            if (id >= 0) {
+                rulesRepository.updateRule(
+                    id = id,
+                    address = address,
+                    applyToAllSenders = applyToAllSenders,
+                    sampleBody = sampleBody,
+                    searchText = search,
+                    leftAnchor = left,
+                    rightAnchor = right,
+                    extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                    extractLength = extract.length,
+                    notificationPrefix = prefix
+                )
+            } else {
+                rulesRepository.saveRule(
+                    address = address,
+                    applyToAllSenders = applyToAllSenders,
+                    sampleBody = sampleBody,
+                    searchText = search,
+                    leftAnchor = left,
+                    rightAnchor = right,
+                    extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                    extractLength = extract.length,
+                    notificationPrefix = prefix
+                )
+            }
+        })
     }
 
     private fun exportRules() {
@@ -283,20 +313,21 @@ class NotificationRulesActivity : QkThemedActivity() {
     }
 
     private fun importRules(json: String) {
-        try {
+        var imported = 0
+        writeThenRefresh({
             val array = JSONArray(json)
-            var imported = 0
             for (i in 0 until array.length()) {
                 val obj = array.optJSONObject(i) ?: continue
                 val address = obj.optString("address", "").trim()
-                val searchText = obj.optString("searchText", "").trim()
+                // Not trimmed: leftAnchor/rightAnchor lengths are relative to the exported text
+                val searchText = obj.optString("searchText", "")
                 val applyToAllSenders = obj.optBoolean("applyToAllSenders", false)
                 val sampleBody = obj.optString("sampleBody", searchText)
                 val leftAnchor = obj.optString("leftAnchor", "")
                 val rightAnchor = obj.optString("rightAnchor", "")
                 val extractLength = obj.optInt("extractLength", 0)
                 val notificationPrefix = obj.optString("notificationPrefix", "").trim()
-                if (address.isEmpty() || searchText.isEmpty() || extractLength <= 0) continue
+                if (address.isEmpty() || searchText.isBlank() || extractLength <= 0) continue
                 rulesRepository.saveRule(
                     address = address,
                     applyToAllSenders = applyToAllSenders,
@@ -310,11 +341,11 @@ class NotificationRulesActivity : QkThemedActivity() {
                 )
                 imported++
             }
-            refresh()
-            Toast.makeText(this, getString(R.string.notification_rules_import_success, imported), Toast.LENGTH_LONG).show()
-        } catch (_: Throwable) {
+        }, onError = {
             Toast.makeText(this, R.string.notification_rules_import_error, Toast.LENGTH_LONG).show()
-        }
+        }, onSuccess = {
+            Toast.makeText(this, getString(R.string.notification_rules_import_success, imported), Toast.LENGTH_LONG).show()
+        })
     }
 
     private fun extractPreview(rule: NotificationExtractRule): String {

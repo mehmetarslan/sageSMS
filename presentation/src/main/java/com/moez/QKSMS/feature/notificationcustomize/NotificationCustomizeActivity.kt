@@ -23,6 +23,8 @@ import android.text.Selection
 import android.text.Spannable
 import android.widget.TextView
 import android.widget.Toast
+import com.uber.autodispose.android.lifecycle.scope
+import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import dev.octoshrimpy.quik.R
 import dev.octoshrimpy.quik.common.base.QkThemedActivity
@@ -31,6 +33,10 @@ import dev.octoshrimpy.quik.model.Message
 import dev.octoshrimpy.quik.model.NotificationExtractionModes
 import dev.octoshrimpy.quik.repository.MessageRepository
 import dev.octoshrimpy.quik.repository.NotificationExtractRuleRepository
+import io.reactivex.Completable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -85,7 +91,9 @@ class NotificationCustomizeActivity : QkThemedActivity() {
             val search = intent.getStringExtra(EXTRA_RULE_SEARCH).orEmpty()
             val extract = intent.getStringExtra(EXTRA_RULE_EXTRACT).orEmpty()
             val prefix = intent.getStringExtra(EXTRA_RULE_PREFIX).orEmpty()
-            openEditorForExistingRule(address, sample, search, extract, prefix, applyToAll)
+            val extractStart = intent.getIntExtra(EXTRA_RULE_EXTRACT_START, -1)
+            openEditorForExistingRule(address, sample, search, extract, extractStart, prefix, applyToAll)
+            restoreSelection(savedInstanceState)
             return
         }
 
@@ -101,6 +109,20 @@ class NotificationCustomizeActivity : QkThemedActivity() {
             return
         }
         openEditorFor(message)
+        restoreSelection(savedInstanceState)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(STATE_EXTRACT_START, extractStartInSearch)
+        outState.putInt(STATE_EXTRACT_LENGTH, extractLength)
+    }
+
+    /** EditTexts restore their own text after rotation, but the extract offsets live in fields. */
+    private fun restoreSelection(savedInstanceState: Bundle?) {
+        savedInstanceState ?: return
+        extractStartInSearch = savedInstanceState.getInt(STATE_EXTRACT_START, -1)
+        extractLength = savedInstanceState.getInt(STATE_EXTRACT_LENGTH, 0)
     }
 
     private fun openEditorFor(message: Message) {
@@ -121,6 +143,7 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         sample: String,
         search: String,
         extract: String,
+        extractStart: Int,
         prefix: String,
         applyToAll: Boolean
     ) {
@@ -133,7 +156,10 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         binding.applyToAllSenders.isChecked = applyToAll
         binding.selectSearchButton.isEnabled = true
         if (search.isNotEmpty() && extract.isNotEmpty()) {
-            val start = search.indexOf(extract)
+            // Prefer the stored position: indexOf picks the wrong spot when the value also appears earlier
+            val start = extractStart
+                .takeIf { it >= 0 && search.regionMatches(it, extract, 0, extract.length) }
+                ?: search.indexOf(extract)
             if (start >= 0) {
                 extractStartInSearch = start
                 extractLength = extract.length
@@ -142,7 +168,10 @@ class NotificationCustomizeActivity : QkThemedActivity() {
     }
 
     private fun onSave() {
-        val search = binding.searchText.text?.toString()?.trim().orEmpty()
+        val rawSearch = binding.searchText.text?.toString().orEmpty()
+        val search = rawSearch.trim()
+        // extractStartInSearch was measured on the untrimmed field, so shift it past the trimmed leading whitespace
+        val extractStart = extractStartInSearch - (rawSearch.length - rawSearch.trimStart().length)
         val display = binding.displayText.text?.toString().orEmpty()
         val prefix = binding.prefixText.text?.toString()?.trim().orEmpty()
         val applyToAll = binding.applyToAllSenders.isChecked
@@ -150,7 +179,7 @@ class NotificationCustomizeActivity : QkThemedActivity() {
             Toast.makeText(this, R.string.notification_customize_error_empty, Toast.LENGTH_LONG).show()
             return
         }
-        if (extractStartInSearch + extractLength > search.length) {
+        if (extractStart < 0 || extractStart + extractLength > search.length) {
             Toast.makeText(this, R.string.notification_customize_error_extract_inside_search, Toast.LENGTH_LONG).show()
             return
         }
@@ -158,45 +187,61 @@ class NotificationCustomizeActivity : QkThemedActivity() {
             Toast.makeText(this, R.string.notification_customize_error_search_not_in_sample, Toast.LENGTH_LONG).show()
             return
         }
-        val selectedFromSearch = search.substring(extractStartInSearch, extractStartInSearch + extractLength)
+        val selectedFromSearch = search.substring(extractStart, extractStart + extractLength)
         if (selectedFromSearch != display) {
             Toast.makeText(this, R.string.notification_customize_error_extract_inside_search, Toast.LENGTH_LONG).show()
             return
         }
-        val left = search.substring(0, extractStartInSearch)
-        val right = search.substring(extractStartInSearch + extractLength)
-        if (editRuleId >= 0L) {
-            ruleRepository.updateRule(
-                id = editRuleId,
-                address = sampleAddress,
-                applyToAllSenders = applyToAll,
-                sampleBody = sampleBody,
-                searchText = search,
-                leftAnchor = left,
-                rightAnchor = right,
-                extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
-                extractLength = extractLength,
-                notificationPrefix = prefix
-            )
-        } else {
-            ruleRepository.saveRule(
-                address = sampleAddress,
-                applyToAllSenders = applyToAll,
-                sampleBody = sampleBody,
-                searchText = search,
-                leftAnchor = left,
-                rightAnchor = right,
-                extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
-                extractLength = extractLength,
-                notificationPrefix = prefix
-            )
-        }
-        Toast.makeText(this, R.string.notification_customize_saved, Toast.LENGTH_SHORT).show()
-        finish()
+        val left = search.substring(0, extractStart)
+        val right = search.substring(extractStart + extractLength)
+        val ruleLength = extractLength
+        binding.saveButton.isEnabled = false
+        // Realm writes are not allowed on the UI thread; close the editor once the rule is committed
+        Completable
+            .fromAction {
+                if (editRuleId >= 0L) {
+                    ruleRepository.updateRule(
+                        id = editRuleId,
+                        address = sampleAddress,
+                        applyToAllSenders = applyToAll,
+                        sampleBody = sampleBody,
+                        searchText = search,
+                        leftAnchor = left,
+                        rightAnchor = right,
+                        extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                        extractLength = ruleLength,
+                        notificationPrefix = prefix
+                    )
+                } else {
+                    ruleRepository.saveRule(
+                        address = sampleAddress,
+                        applyToAllSenders = applyToAll,
+                        sampleBody = sampleBody,
+                        searchText = search,
+                        leftAnchor = left,
+                        rightAnchor = right,
+                        extractionMode = NotificationExtractionModes.INDEXED_SUBSTRING,
+                        extractLength = ruleLength,
+                        notificationPrefix = prefix
+                    )
+                }
+            }
+            .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(scope())
+            .subscribe({
+                Toast.makeText(this, R.string.notification_customize_saved, Toast.LENGTH_SHORT).show()
+                finish()
+            }, { e ->
+                Timber.e(e, "Saving notification rule failed")
+                binding.saveButton.isEnabled = true
+                Toast.makeText(this, R.string.notification_customize_save_failed, Toast.LENGTH_LONG).show()
+            })
     }
 
     private fun copySelectionFromSample() {
-        val selected = getSelectedText(binding.sampleBody)
+        // Trim so stray spaces picked up by the selection handles don't become part of the anchors
+        val selected = getSelectedText(binding.sampleBody)?.trim()
         if (selected.isNullOrBlank()) {
             Toast.makeText(this, R.string.notification_customize_error_select_text, Toast.LENGTH_SHORT).show()
             return
@@ -251,5 +296,8 @@ class NotificationCustomizeActivity : QkThemedActivity() {
         const val EXTRA_RULE_PREFIX = "rulePrefix"
         const val EXTRA_RULE_GLOBAL = "ruleGlobal"
         const val EXTRA_RULE_SAMPLE_BODY = "ruleSampleBody"
+        const val EXTRA_RULE_EXTRACT_START = "ruleExtractStart"
+        private const val STATE_EXTRACT_START = "extractStart"
+        private const val STATE_EXTRACT_LENGTH = "extractLength"
     }
 }

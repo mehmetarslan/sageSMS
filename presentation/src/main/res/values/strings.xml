@@ -176,6 +176,7 @@
     <string name="notification_customize_error_select_text">Select text first</string>
     <string name="notification_customize_error_pick_message">Open this screen from a selected message that has text</string>
     <string name="notification_customize_saved">Rule saved</string>
+    <string name="notification_customize_save_failed">Could not save the rule</string>
     <string name="notification_rules_title">Notification rules</string>
     <string name="notification_rules_summary">Manage global and sender-based notification extraction rules</string>
     <string name="notification_rules_edit_title">Edit rule</string>

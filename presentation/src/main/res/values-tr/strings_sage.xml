@@ -70,6 +70,23 @@
     <string name="notification_rules_empty_section">– Henüz kural yok –</string>
     <string name="button_edit">Düzenle</string>
 
+    <string name="selection_action_notification_rule">Bildirim olarak ayarla</string>
+    <string name="selection_action_use_as_value">Değer olarak kullan</string>
+    <string name="notification_pattern_title">Bildirim kuralı</string>
+    <string name="notification_pattern_sample_hint">Vurgulanan kısım bildirimde gösterilir. Değiştirmek için mesaja çift dokunup başka bir kısmı seçin ve \"Değer olarak kullan\"a dokunun.</string>
+    <string name="notification_pattern_template_label">Bildirim metni</string>
+    <string name="notification_pattern_default_template">{değer}</string>
+    <string name="notification_pattern_template_hint">{değer} yerine vurgulanan kısım yazılır, örn. Harcama: {değer} TL</string>
+    <string name="notification_pattern_insert_value">Değeri ekle</string>
+    <string name="notification_pattern_scope_label">Uygulanacak mesajlar</string>
+    <string name="notification_pattern_scope_sender">Bu gönderici</string>
+    <string name="notification_pattern_scope_all">Tüm göndericiler</string>
+    <string name="notification_pattern_no_selection">Mesajda gösterilecek kısmı seçin</string>
+    <string name="notification_pattern_failed">Bu seçimden kural oluşturulamadı. Sadece değişen kısmı seçmeyi deneyin.</string>
+    <string name="notification_pattern_advanced">Gelişmiş: deseni düzenle</string>
+    <string name="notification_pattern_invalid">Desen geçerli değil</string>
+    <string name="notification_pattern_no_match">Desen örnek mesajla eşleşmiyor</string>
+    <string name="notification_rules_add_hint_selection">Sohbeti açın, mesaja çift dokunun, gösterilecek kısmı seçin ve \"Bildirim olarak ayarla\"ya dokunun.</string>
     <string name="blocked_numbers_pattern_info">İpucu: Joker karakter olarak * kullanın (örnek: 0555*). Düzenli ifade için başına regex: ekleyin (örnek: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Engellenen numaraları içe aktar</string>
     <string name="blocked_numbers_import_action">İçe aktar</string>

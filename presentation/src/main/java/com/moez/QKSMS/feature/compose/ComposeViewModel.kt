@@ -540,15 +540,22 @@ class ComposeViewModel @Inject constructor(
             .autoDisposable(view.scope())
             .subscribe { view.clearSelection() }
 
-        // Open per-sender notification line customization for this thread
+        // Open the notification rule screen for the selected message; the value is picked there
         view.optionsItemIntent
             .filter { it == R.id.notification_customize }
-            .withLatestFrom(state, view.messagesSelectedIntent) { _, s, selected -> s to selected }
-            .mapNotNull { (s, selected) -> selected.firstOrNull()?.let { messageId -> s.threadId to messageId } }
+            .withLatestFrom(view.messagesSelectedIntent) { _, selected -> selected }
+            .mapNotNull { selected -> selected.firstOrNull() }
             .autoDisposable(view.scope())
-            .subscribe { (threadId, messageId) ->
-                navigator.showNotificationCustomize(threadId, messageId)
+            .subscribe { messageId ->
+                navigator.showNotificationPattern(messageId)
                 view.clearSelection()
+            }
+
+        // "Set as notification" on text selected in a message bubble
+        view.notificationRuleSelectionIntent
+            .autoDisposable(view.scope())
+            .subscribe { selection ->
+                navigator.showNotificationPattern(selection.messageId, selection.text, selection.start, selection.end)
             }
 
         view.optionsItemIntent

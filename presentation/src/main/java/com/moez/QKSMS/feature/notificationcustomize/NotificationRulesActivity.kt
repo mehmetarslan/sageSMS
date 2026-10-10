@@ -153,6 +153,10 @@ class NotificationRulesActivity : QkThemedActivity() {
     }
 
     private fun editRule(rule: NotificationExtractRule) {
+        if (rule.extractionMode == NotificationExtractionModes.REGEX) {
+            navigator.showNotificationPatternRule(rule.id)
+            return
+        }
         startActivity(
             Intent(this, NotificationCustomizeActivity::class.java)
                 .putExtra(NotificationCustomizeActivity.EXTRA_RULE_ID, rule.id)
@@ -198,7 +202,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                 navigator.showConversation(picked.id)
                 finish()
             }
-            .setMessage(R.string.notification_rules_add_hint)
+            .setMessage(R.string.notification_rules_add_hint_selection)
             .show()
     }
 
@@ -292,6 +296,7 @@ class NotificationRulesActivity : QkThemedActivity() {
                     put("extractLength", rule.extractLength)
                     put("extractionMode", rule.extractionMode)
                     put("notificationPrefix", rule.notificationPrefix)
+                    put("pattern", rule.pattern)
                 }
             )
         }
@@ -335,7 +340,13 @@ class NotificationRulesActivity : QkThemedActivity() {
                     .takeIf { mode -> mode in NotificationExtractionModes.ALL }
                     ?: NotificationExtractionModes.INDEXED_SUBSTRING
                 val notificationPrefix = obj.optString("notificationPrefix", "").trim()
-                if (address.isEmpty() || searchText.isBlank() || extractLength <= 0) continue
+                val pattern = obj.optString("pattern", "")
+                if (address.isEmpty() || searchText.isBlank()) continue
+                if (extractionMode == NotificationExtractionModes.REGEX) {
+                    if (runCatching { Regex(pattern) }.isFailure || pattern.isBlank()) continue
+                } else if (extractLength <= 0) {
+                    continue
+                }
                 rulesRepository.saveRule(
                     address = address,
                     applyToAllSenders = applyToAllSenders,
@@ -345,7 +356,8 @@ class NotificationRulesActivity : QkThemedActivity() {
                     rightAnchor = rightAnchor,
                     extractionMode = extractionMode,
                     extractLength = extractLength,
-                    notificationPrefix = notificationPrefix
+                    notificationPrefix = notificationPrefix,
+                    pattern = pattern
                 )
                 imported++
             }
@@ -494,6 +506,17 @@ class NotificationRulesActivity : QkThemedActivity() {
                 else -> "•".repeat(rule.extractLength.coerceIn(1, 12))
             }
             addressView.text = addressLabel
+            if (rule.extractionMode == NotificationExtractionModes.REGEX) {
+                // The sample with the captured part masked, e.g. "...MIGROS işyerinde ‹…› TL harcama..."
+                val range = runCatching { Regex(rule.pattern).find(rule.sampleBody)?.groups?.get(1)?.range }.getOrNull()
+                searchView.text = if (range == null) rule.sampleBody else
+                    rule.sampleBody.replaceRange(range, "‹…›").let { masked ->
+                        val center = range.first
+                        masked.substring(maxOf(0, center - 40), minOf(masked.length, center + 45)).trim()
+                    }
+                extractView.text = "→ ${NotificationExtractionModes.format(rule.notificationPrefix, rule.searchText)}"
+                return
+            }
             // e.g. "Kartinizdan ‹number› TL harcama" → "Harcama: …"
             searchView.text = "${rule.leftAnchor}$placeholder${rule.rightAnchor}".trim()
             extractView.text = "→ ${rule.notificationPrefix.trim()} …".replace("  ", " ")

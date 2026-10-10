@@ -40,6 +40,7 @@ import dev.octoshrimpy.quik.feature.gallery.GalleryActivity
 import dev.octoshrimpy.quik.feature.main.MainActivity
 import dev.octoshrimpy.quik.feature.messageutils.MessageUtilsActivity
 import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationCustomizeActivity
+import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationPatternActivity
 import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationRulesActivity
 import dev.octoshrimpy.quik.feature.notificationprefs.NotificationPrefsActivity
 import dev.octoshrimpy.quik.feature.plus.PlusActivity
@@ -165,6 +166,27 @@ class Navigator @Inject constructor(
             Intent(context, NotificationCustomizeActivity::class.java)
                 .putExtra(NotificationCustomizeActivity.EXTRA_THREAD_ID, threadId)
                 .putExtra(NotificationCustomizeActivity.EXTRA_MESSAGE_ID, preselectedMessageId)
+        )
+    }
+
+    /**
+     * Rule screen for a message. With [text] and a selection the rule is generated right away;
+     * without one the user picks the value inside the screen.
+     */
+    fun showNotificationPattern(messageId: Long, text: String? = null, start: Int = -1, end: Int = -1) {
+        startActivity(
+            Intent(context, NotificationPatternActivity::class.java)
+                .putExtra(NotificationPatternActivity.EXTRA_MESSAGE_ID, messageId)
+                .putExtra(NotificationPatternActivity.EXTRA_TEXT, text)
+                .putExtra(NotificationPatternActivity.EXTRA_SELECTION_START, start)
+                .putExtra(NotificationPatternActivity.EXTRA_SELECTION_END, end)
+        )
+    }
+
+    fun showNotificationPatternRule(ruleId: Long) {
+        startActivity(
+            Intent(context, NotificationPatternActivity::class.java)
+                .putExtra(NotificationPatternActivity.EXTRA_RULE_ID, ruleId)
         )
     }
 

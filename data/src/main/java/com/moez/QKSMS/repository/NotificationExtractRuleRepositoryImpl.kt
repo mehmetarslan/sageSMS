@@ -2,6 +2,7 @@ package dev.octoshrimpy.quik.repository
 
 import dev.octoshrimpy.quik.model.NotificationExtractionModes
 import dev.octoshrimpy.quik.model.NotificationExtractRule
+import dev.octoshrimpy.quik.rules.NotificationPatternGenerator
 import dev.octoshrimpy.quik.util.PhoneNumberUtils
 import io.realm.Realm
 import javax.inject.Inject
@@ -21,7 +22,8 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
         rightAnchor: String,
         extractionMode: Int,
         extractLength: Int,
-        notificationPrefix: String
+        notificationPrefix: String,
+        pattern: String
     ) {
         val trimmedAddress = address.trim()
         if (trimmedAddress.isEmpty() || searchText.isEmpty()) {
@@ -47,7 +49,8 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
                         rightAnchor = rightAnchor,
                         extractionMode = extractionMode,
                         extractLength = extractLength,
-                        notificationPrefix = notificationPrefix
+                        notificationPrefix = notificationPrefix,
+                        pattern = pattern
                     )
                 )
             }
@@ -86,6 +89,7 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
                 rightAnchor = rule.rightAnchor,
                 extractLength = rule.extractLength
             )
+            NotificationExtractionModes.REGEX -> NotificationPatternGenerator.extract(rule.pattern, fullBody)
             else -> extractByAnchors(
                 body = fullBody,
                 leftAnchor = rule.leftAnchor,
@@ -93,8 +97,7 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
                 mode = rule.extractionMode
             )
         } ?: return null
-        val prefix = rule.notificationPrefix.trim()
-        return if (prefix.isBlank()) extracted else "$prefix $extracted"
+        return NotificationExtractionModes.format(rule.notificationPrefix, extracted)
     }
 
     override fun getRules(addresses: Collection<String>): List<NotificationExtractRule> {
@@ -135,7 +138,8 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
         rightAnchor: String,
         extractionMode: Int,
         extractLength: Int,
-        notificationPrefix: String
+        notificationPrefix: String,
+        pattern: String
     ) {
         val trimmedAddress = address.trim()
         if (trimmedAddress.isEmpty() || searchText.isEmpty()) return
@@ -156,7 +160,8 @@ class NotificationExtractRuleRepositoryImpl @Inject constructor(
                         rightAnchor = rightAnchor,
                         extractionMode = extractionMode,
                         extractLength = extractLength,
-                        notificationPrefix = notificationPrefix
+                        notificationPrefix = notificationPrefix,
+                        pattern = pattern
                     )
                 )
             }

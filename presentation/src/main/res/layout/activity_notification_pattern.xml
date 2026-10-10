@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        style="@style/Toolbar"
+        android:elevation="8dp">
+
+        <dev.octoshrimpy.quik.common.widget.QkTextView
+            android:id="@+id/toolbarTitle"
+            style="@style/ToolbarText"
+            tools:text="Title" />
+
+    </androidx.appcompat.widget.Toolbar>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                android:id="@+id/sampleBody"
+                style="@style/TextPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/notification_rule_row_bg"
+                android:padding="12dp"
+                android:textIsSelectable="true"
+                tools:text="Kartınızdan 12.312,50 TL harcama yapılmıştır." />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="6dp"
+                android:text="@string/notification_pattern_sample_hint" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="20dp"
+                android:paddingBottom="4dp"
+                android:text="@string/notification_pattern_template_label" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <dev.octoshrimpy.quik.common.widget.QkEditText
+                    android:id="@+id/template"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:inputType="text" />
+
+                <Button
+                    android:id="@+id/insertValue"
+                    style="?android:attr/borderlessButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/notification_pattern_insert_value" />
+
+            </LinearLayout>
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/notification_pattern_template_hint" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="20dp"
+                android:paddingBottom="4dp"
+                android:text="@string/notification_pattern_scope_label" />
+
+            <RadioGroup
+                android:id="@+id/scope"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/scopeSender"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="@string/notification_pattern_scope_sender" />
+
+                <RadioButton
+                    android:id="@+id/scopeAll"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/notification_pattern_scope_all" />
+
+            </RadioGroup>
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="20dp"
+                android:paddingBottom="4dp"
+                android:text="@string/notification_customize_preview_label" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                android:id="@+id/previewLine"
+                style="@style/TextPrimary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/notification_rule_row_bg"
+                android:padding="12dp"
+                android:textStyle="bold"
+                tools:text="Harcama: 12.312,50 TL" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                android:id="@+id/recentLabel"
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:paddingBottom="4dp"
+                tools:text="Matches 8 of 10 recent messages" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                android:id="@+id/recentMatches"
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="4dp"
+                tools:text="✓ 123\n✗ Kampanya…" />
+
+            <dev.octoshrimpy.quik.common.widget.QkTextView
+                android:id="@+id/advancedToggle"
+                style="@style/TextSecondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:paddingTop="20dp"
+                android:paddingBottom="8dp"
+                android:text="@string/notification_pattern_advanced" />
+
+            <dev.octoshrimpy.quik.common.widget.QkEditText
+                android:id="@+id/pattern"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="monospace"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:textSize="13sp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/saveButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/notification_customize_save" />
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

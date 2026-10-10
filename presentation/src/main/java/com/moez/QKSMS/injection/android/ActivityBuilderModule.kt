@@ -33,6 +33,7 @@ import dev.octoshrimpy.quik.feature.main.MainActivity
 import dev.octoshrimpy.quik.feature.main.MainActivityModule
 import dev.octoshrimpy.quik.feature.messageutils.MessageUtilsActivity
 import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationCustomizeActivity
+import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationPatternActivity
 import dev.octoshrimpy.quik.feature.notificationcustomize.NotificationRulesActivity
 import dev.octoshrimpy.quik.feature.notificationprefs.NotificationPrefsActivity
 import dev.octoshrimpy.quik.feature.notificationprefs.NotificationPrefsActivityModule
@@ -112,5 +113,9 @@ abstract class ActivityBuilderModule {
     @ActivityScope
     @ContributesAndroidInjector(modules = [])
     abstract fun bindNotificationRulesActivity(): NotificationRulesActivity
+
+    @ActivityScope
+    @ContributesAndroidInjector(modules = [])
+    abstract fun bindNotificationPatternActivity(): NotificationPatternActivity
 
 }

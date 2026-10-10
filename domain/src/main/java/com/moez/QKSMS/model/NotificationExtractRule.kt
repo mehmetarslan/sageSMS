@@ -20,7 +20,9 @@ open class NotificationExtractRule(
     var rightAnchor: String = "",
     var extractionMode: Int = NotificationExtractionModes.INDEXED_SUBSTRING,
     var extractLength: Int = 0,
-    var notificationPrefix: String = ""
+    var notificationPrefix: String = "",
+    /** Generated (or hand-edited) regex for [NotificationExtractionModes.REGEX]; group 1 is the value. */
+    var pattern: String = ""
 ) : RealmObject()
 
 object NotificationExtractionModes {
@@ -32,8 +34,25 @@ object NotificationExtractionModes {
     const val WORD = 4
     /** Everything between the anchors (or to the end of the line without a right anchor). */
     const val UNTIL_RIGHT_ANCHOR = 5
+    /** [NotificationExtractRule.pattern] built from a text selection in a message. */
+    const val REGEX = 6
 
-    val ALL = listOf(NUMBER, WORD, UNTIL_RIGHT_ANCHOR, INDEXED_SUBSTRING)
+    val ALL = listOf(NUMBER, WORD, UNTIL_RIGHT_ANCHOR, INDEXED_SUBSTRING, REGEX)
+
+    /** Markers in the notification text that are replaced by the extracted value. */
+    val VALUE_PLACEHOLDERS = listOf("{değer}", "{value}", "{}")
+
+    /**
+     * Builds the notification line. A template with a placeholder ("💳 {değer} TL") puts the value
+     * there; older rules store a plain prefix, which goes in front of the value.
+     */
+    fun format(template: String, value: String): String {
+        val trimmed = template.trim()
+        VALUE_PLACEHOLDERS.firstOrNull { trimmed.contains(it) }?.let { placeholder ->
+            return trimmed.replace(placeholder, value)
+        }
+        return if (trimmed.isBlank()) value else "$trimmed $value"
+    }
 
     /** Picks the value type that fits a highlighted sample value, e.g. "12.312,50" → [NUMBER]. */
     fun suggestFor(value: String): Int = when {

@@ -47,6 +47,7 @@ import dev.octoshrimpy.quik.common.base.QkViewHolder
 import dev.octoshrimpy.quik.common.util.Colors
 import dev.octoshrimpy.quik.common.util.DateFormatter
 import dev.octoshrimpy.quik.common.util.TextViewStyler
+import dev.octoshrimpy.quik.common.util.extensions.addSelectionAction
 import dev.octoshrimpy.quik.common.util.extensions.dpToPx
 import dev.octoshrimpy.quik.common.util.extensions.setBackgroundTint
 import dev.octoshrimpy.quik.common.util.extensions.setPadding
@@ -111,6 +112,10 @@ class MessagesAdapter @Inject constructor(
     val resendClicks: Subject<Long> = PublishSubject.create()
     val partContextMenuRegistrar: Subject<View> = PublishSubject.create()
     val reactionClicks: Subject<Long> = PublishSubject.create()
+    val notificationRuleSelections: Subject<NotificationRuleSelection> = PublishSubject.create()
+
+    /** Text the user selected in a message bubble, with bounds into [text] as displayed. */
+    data class NotificationRuleSelection(val messageId: Long, val text: String, val start: Int, val end: Int)
 
     var data: Pair<Conversation, RealmResults<Message>>? = null
         set(value) {
@@ -354,6 +359,16 @@ class MessagesAdapter @Inject constructor(
         holder.itemView.setPadding(
             bottom = if (canGroup(message, next)) 0 else 16.dpToPx(context)
         )
+
+        // Selecting text in an incoming message offers to turn the selection into a notification rule
+        if (isOutgoing) {
+            body.customSelectionActionModeCallback = null
+        } else {
+            val messageId = message.id
+            body.addSelectionAction(R.string.selection_action_notification_rule) { start, end ->
+                notificationRuleSelections.onNext(NotificationRuleSelection(messageId, body.text.toString(), start, end))
+            }
+        }
 
         // Bind the body text
         val emojiOnly = displayText.isEmojiOnly()

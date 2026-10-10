@@ -75,6 +75,25 @@
     <string name="notification_rules_empty_section">– No rules yet –</string>
     <string name="button_edit">Edit</string>
 
+    <!-- Notification rule from a text selection -->
+    <string name="selection_action_notification_rule">Set as notification</string>
+    <string name="selection_action_use_as_value">Use as value</string>
+    <string name="notification_pattern_title">Notification rule</string>
+    <string name="notification_pattern_sample_hint">The highlighted part is shown in the notification. To change it, double-tap the message, select another part, and tap \"Use as value\".</string>
+    <string name="notification_pattern_template_label">Notification text</string>
+    <string name="notification_pattern_default_template">{value}</string>
+    <string name="notification_pattern_template_hint">{value} is replaced by the highlighted part, e.g. Spent {value} TL</string>
+    <string name="notification_pattern_insert_value">Insert value</string>
+    <string name="notification_pattern_scope_label">Applies to</string>
+    <string name="notification_pattern_scope_sender">This sender</string>
+    <string name="notification_pattern_scope_all">All senders</string>
+    <string name="notification_pattern_no_selection">Select the part of the message to show</string>
+    <string name="notification_pattern_failed">Couldn\'t build a rule from this selection. Try selecting only the part that changes.</string>
+    <string name="notification_pattern_advanced">Advanced: edit the pattern</string>
+    <string name="notification_pattern_invalid">The pattern isn\'t valid</string>
+    <string name="notification_pattern_no_match">The pattern doesn\'t match the sample message</string>
+    <string name="notification_rules_add_hint_selection">Open the conversation, double-tap a message, select the part to show, and tap \"Set as notification\".</string>
+
     <!-- Blocked numbers import / export -->
     <string name="blocked_numbers_pattern_info">Tip: Use * as a wildcard (example: 0555*). For a regular expression, start with regex: (example: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Import blocked numbers</string>

@@ -49,6 +49,7 @@ interface ComposeView : QkView<ComposeState> {
     val menuReadyIntent: Observable<Unit>
     val optionsItemIntent: Observable<Int>
     val searchQueryIntent: Observable<String>
+    val notificationRuleSelectionIntent: Observable<MessagesAdapter.NotificationRuleSelection>
     val contextItemIntent: Observable<MenuItem>
     val sendAsGroupIntent: Observable<Unit>
     val messagePartClickIntent: Subject<Long>

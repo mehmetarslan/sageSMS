@@ -155,6 +155,7 @@ class ComposeActivity : QkThemedActivity(), ComposeView {
     override val clearCurrentMessageIntent: Subject<Boolean> = PublishSubject.create()
     override val messageLinkAskIntent: Subject<Uri> by lazy { messageAdapter.messageLinkClicks }
     override val reactionClickIntent: Subject<Long> by lazy { messageAdapter.reactionClicks }
+    override val notificationRuleSelectionIntent by lazy { messageAdapter.notificationRuleSelections }
     override val speechRecogniserIntent by lazy { binding.speechToTextIcon.clicks() }
     override val shadeIntent by lazy { binding.shadeBackground.clicks() }
     override val recordAudioStartStopRecording: Subject<Boolean> = PublishSubject.create()

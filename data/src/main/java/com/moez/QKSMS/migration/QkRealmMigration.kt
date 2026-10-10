@@ -37,7 +37,7 @@ class QkRealmMigration @Inject constructor(
 ) : RealmMigration {
 
     companion object {
-        const val SCHEMA_VERSION: Long = 19
+        const val SCHEMA_VERSION: Long = 20
     }
 
     @SuppressLint("ApplySharedPref")
@@ -359,6 +359,17 @@ class QkRealmMigration @Inject constructor(
                         val search = o.getString("searchText").orEmpty()
                         o.setString("sampleBody", search)
                     }
+                }
+            version++
+        }
+
+        if (version == 19L) {
+            realm.schema.get("NotificationExtractRule")
+                ?.apply {
+                    if (!hasField("pattern")) {
+                        addField("pattern", String::class.java, FieldAttribute.REQUIRED)
+                    }
+                    transform { o -> o.setString("pattern", "") }
                 }
             version++
         }

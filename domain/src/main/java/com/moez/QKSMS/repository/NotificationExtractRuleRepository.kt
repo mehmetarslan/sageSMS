@@ -13,6 +13,7 @@ interface NotificationExtractRuleRepository {
      * [searchText] is the full user-selected sample.
      * [leftAnchor]/[rightAnchor] are the fixed parts around the selected extract substring.
      * [extractLength] is the selected extract length.
+     * [pattern] is only used by [NotificationExtractionModes.REGEX] rules.
      */
     fun saveRule(
         address: String,
@@ -23,7 +24,8 @@ interface NotificationExtractRuleRepository {
         rightAnchor: String,
         extractionMode: Int = NotificationExtractionModes.INDEXED_SUBSTRING,
         extractLength: Int = 0,
-        notificationPrefix: String = ""
+        notificationPrefix: String = "",
+        pattern: String = ""
     )
 
     /**
@@ -54,6 +56,7 @@ interface NotificationExtractRuleRepository {
         rightAnchor: String,
         extractionMode: Int = NotificationExtractionModes.INDEXED_SUBSTRING,
         extractLength: Int = 0,
-        notificationPrefix: String = ""
+        notificationPrefix: String = "",
+        pattern: String = ""
     )
 }

@@ -53,9 +53,17 @@ jobs:
             echo "::error title=Missing secret::SAGE_DEBUG_KEYSTORE_BASE64 is not set. Without it Gradle would generate a new key and the APK could not update the installed app."
             exit 1
           fi
-          mkdir -p ~/.android
-          echo "$KEYSTORE_B64" | base64 -d > ~/.android/debug.keystore
-          chmod 600 ~/.android/debug.keystore
+          keystore="$RUNNER_TEMP/sage-debug.keystore"
+          echo "$KEYSTORE_B64" | base64 -d > "$keystore"
+          chmod 600 "$keystore"
+
+          actual=$(keytool -list -v -keystore "$keystore" -storepass android -alias androiddebugkey \
+            | sed -n 's/^[[:space:]]*SHA256: //p' | tr -d ':' | tr 'A-F' 'a-f')
+          if [[ "$actual" != "$EXPECTED_CERT_SHA256" ]]; then
+            echo "::error title=Wrong keystore::Secret SAGE_DEBUG_KEYSTORE_BASE64 holds certificate ${actual:-unreadable}, expected $EXPECTED_CERT_SHA256."
+            exit 1
+          fi
+          echo "SAGE_DEBUG_KEYSTORE=$keystore" >> "$GITHUB_ENV"
 
       - name: Build APK
         run: ./gradlew :presentation:assembleDebug -PsageBuildNumber=${{ github.run_number }} --console=plain
@@ -124,4 +132,4 @@ jobs:
 
       - name: Remove signing keystore
         if: always()
-        run: rm -f ~/.android/debug.keystore
+        run: rm -f "$RUNNER_TEMP/sage-debug.keystore"

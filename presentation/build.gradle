@@ -41,7 +41,16 @@ android {
     }
 
     signingConfigs {
-        debug // Uses the default debug keystore.
+        debug {
+            // Uses the default debug keystore, unless CI points to the one the installed app was signed with
+            def sageDebugKeystore = System.getenv("SAGE_DEBUG_KEYSTORE")
+            if (sageDebugKeystore) {
+                storeFile file(sageDebugKeystore)
+                storePassword 'android'
+                keyAlias 'androiddebugkey'
+                keyPassword 'android'
+            }
+        }
         release {
             def keystoreProps = new Properties()
             def keystorePropsFile = rootProject.file('./.gradle/.gradlerc')

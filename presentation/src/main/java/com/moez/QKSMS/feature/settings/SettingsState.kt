@@ -35,6 +35,7 @@ data class SettingsState(
     val sendDelayId: Int = 0,
     val deliveryEnabled: Boolean = false,
     val unreadAtTopEnabled: Boolean = false,
+    val showCategoriesEnabled: Boolean = false,
     val signature: String = "",
     val textSizeSummary: String = "",
     val textSizeId: Int = Preferences.TEXT_SIZE_NORMAL,

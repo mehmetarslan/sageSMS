@@ -93,6 +93,9 @@ class SettingsPresenter @Inject constructor(
         disposables += prefs.unreadAtTop.asObservable()
             .subscribe { enabled -> newState { copy(unreadAtTopEnabled = enabled) } }
 
+        disposables += prefs.showCategories.asObservable()
+            .subscribe { enabled -> newState { copy(showCategoriesEnabled = enabled) } }
+
         disposables += prefs.signature.asObservable()
                 .subscribe { signature -> newState { copy(signature = signature) } }
 
@@ -187,6 +190,8 @@ class SettingsPresenter @Inject constructor(
                         R.id.delivery -> prefs.delivery.set(!prefs.delivery.get())
 
                         R.id.unreadAtTop -> prefs.unreadAtTop.set(!prefs.unreadAtTop.get())
+
+                        R.id.showCategories -> prefs.showCategories.set(!prefs.showCategories.get())
 
                         R.id.signature -> view.showSignatureDialog(prefs.signature.get())
 

@@ -19,6 +19,7 @@
 package dev.octoshrimpy.quik.feature.main
 
 import dev.octoshrimpy.quik.model.Conversation
+import dev.octoshrimpy.quik.model.ConversationCategory
 import dev.octoshrimpy.quik.model.SearchResult
 import dev.octoshrimpy.quik.repository.SyncRepository
 import io.realm.RealmResults
@@ -34,7 +35,13 @@ data class MainState(
     val smsPermission: Boolean = true,
     val contactPermission: Boolean = true,
     val notificationPermission: Boolean = true,
+    val showCategories: Boolean = false,
+    val categories: List<ConversationCategory> = listOf(),
+    /** [ALL_CATEGORIES] or a [ConversationCategory.id] */
+    val selectedCategoryId: Long = ALL_CATEGORIES,
 )
+
+const val ALL_CATEGORIES = 0L
 
 sealed class MainPage
 

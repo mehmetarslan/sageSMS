@@ -94,6 +94,25 @@
     <string name="notification_pattern_no_match">The pattern doesn\'t match the sample message</string>
     <string name="notification_rules_add_hint_selection">Open the conversation, double-tap a message, select the part to show, and tap \"Set as notification\".</string>
 
+    <!-- Inbox categories -->
+    <string name="settings_show_categories_title">Show categories</string>
+    <string name="settings_show_categories_summary">Group senders into tabs like Bank or Verification at the top of the inbox</string>
+    <string name="category_all">All</string>
+    <string name="category_default_bank">Bank</string>
+    <string name="category_default_verification">Verification</string>
+    <string name="category_default_bills">Bills</string>
+    <string name="category_default_shipping">Shipping</string>
+    <string name="main_menu_category">Move to category</string>
+    <string name="category_remove">Remove from category</string>
+    <string name="category_new">New category…</string>
+    <string name="category_add">Add category</string>
+    <string name="category_name_hint">Category name</string>
+    <string name="category_rename">Rename</string>
+    <string name="category_delete_confirm">Delete \"%1$s\"? Its conversations stay in your inbox.</string>
+    <string name="category_moved">Moved to %1$s</string>
+    <string name="category_removed">Removed from category</string>
+    <string name="category_empty">No conversations here yet. Long-press conversations in All and choose \"Move to category\".</string>
+
     <!-- Blocked numbers import / export -->
     <string name="blocked_numbers_pattern_info">Tip: Use * as a wildcard (example: 0555*). For a regular expression, start with regex: (example: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Import blocked numbers</string>

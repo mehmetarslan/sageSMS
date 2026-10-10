@@ -18,6 +18,7 @@
  */
 package dev.octoshrimpy.quik.feature.main
 
+import android.content.Context
 import androidx.recyclerview.widget.ItemTouchHelper
 import com.uber.autodispose.android.lifecycle.scope
 import com.uber.autodispose.autoDisposable
@@ -44,6 +45,7 @@ import dev.octoshrimpy.quik.manager.PermissionManager
 import dev.octoshrimpy.quik.manager.RatingManager
 import dev.octoshrimpy.quik.model.EmojiSyncNeeded
 import dev.octoshrimpy.quik.model.SyncLog
+import dev.octoshrimpy.quik.repository.ConversationCategoryRepository
 import dev.octoshrimpy.quik.repository.ConversationRepository
 import dev.octoshrimpy.quik.repository.EmojiReactionRepository
 import dev.octoshrimpy.quik.repository.MessageRepository
@@ -67,6 +69,8 @@ class MainViewModel @Inject constructor(
     migratePreferences: MigratePreferences,
     syncRepository: SyncRepository,
     private val changelogManager: ChangelogManager,
+    private val context: Context,
+    private val categoryRepo: ConversationCategoryRepository,
     private val conversationRepo: ConversationRepository,
     private val messageRepo: MessageRepository,
     private val deleteConversations: DeleteConversations,
@@ -88,6 +92,34 @@ class MainViewModel @Inject constructor(
     MainState(page = Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get())))
 ) {
     private var lastArchivedThreadIds = listOf<Long>(0)
+    private var selectedCategoryId = ALL_CATEGORIES
+
+    /** Inbox page for the selected category; the query is rebuilt whenever its senders change. */
+    private fun inbox(): Inbox {
+        val addresses = selectedCategoryId
+            .takeIf { it != ALL_CATEGORIES && prefs.showCategories.get() }
+            ?.let(categoryRepo::getAddresses)
+        return Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get(), addresses = addresses))
+    }
+
+    private fun reloadInbox() = newState { if (page is Inbox) copy(page = inbox()) else this }
+
+    private fun defaultCategoryNames() = listOf(
+        R.string.category_default_bank,
+        R.string.category_default_verification,
+        R.string.category_default_bills,
+        R.string.category_default_shipping
+    ).map(context::getString)
+
+    /** Every recipient address of the given conversations; a group lands in the category as a whole. */
+    private fun senderAddresses(conversationIds: List<Long>): List<String> =
+        conversationIds
+            .mapNotNull(conversationRepo::getConversation)
+            .flatMap { conversation -> conversation.recipients.map { recipient -> recipient.address } }
+
+    private fun reloadCategories() = newState {
+        copy(categories = categoryRepo.getCategories(), selectedCategoryId = selectedCategoryId)
+    }
 
     init {
         disposables += deleteConversations
@@ -162,7 +194,7 @@ class MainViewModel @Inject constructor(
             .withLatestFrom(state) { _, state ->
                 if (state.page is Inbox)
                     newState {
-                        copy(page = Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get())))
+                        copy(page = inbox())
                     }
                 else if (state.page is Archived)
                     newState {
@@ -258,7 +290,7 @@ class MainViewModel @Inject constructor(
                 .map { query -> query.trim() }
                 .withLatestFrom(state) { query, state ->
                     if (query.isEmpty() && state.page is Searching) {
-                        newState { copy(page = Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get()))) }
+                        newState { copy(page = inbox()) }
                     }
                     query
                 }
@@ -324,7 +356,7 @@ class MainViewModel @Inject constructor(
                             state.page is Inbox && state.page.selected > 0 -> view.clearSelection()
                             state.page is Archived && state.page.selected > 0 -> view.clearSelection()
                             state.page !is Inbox -> {
-                                newState { copy(page = Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get()))) }
+                                newState { copy(page = inbox()) }
                             }
                             else -> newState { copy(hasError = true) }
                         }
@@ -345,7 +377,7 @@ class MainViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .doOnNext { drawerItem ->
                     when (drawerItem) {
-                        NavItem.INBOX -> newState { copy(page = Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get()))) }
+                        NavItem.INBOX -> newState { copy(page = inbox()) }
                         NavItem.ARCHIVED -> newState { copy(page = Archived(data = conversationRepo.getConversations(prefs.unreadAtTop.get(), true))) }
                         else -> Unit
                     }
@@ -447,6 +479,100 @@ class MainViewModel @Inject constructor(
                 }
                 .autoDisposable(view.scope())
                 .subscribe()
+
+        // Categories follow the setting; turning it on the first time adds a few starter categories
+        prefs.showCategories.asObservable()
+            .observeOn(Schedulers.io())
+            .doOnNext { show ->
+                // Only once, so deleting every category doesn't bring the starters back on next launch
+                if (show && !prefs.categoriesSeeded.get()) {
+                    categoryRepo.addDefaultCategories(defaultCategoryNames())
+                    prefs.categoriesSeeded.set(true)
+                }
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe { show ->
+                if (!show) selectedCategoryId = ALL_CATEGORIES
+                newState { copy(showCategories = show) }
+                reloadCategories()
+                reloadInbox()
+            }
+
+        view.categorySelectedIntent
+            .autoDisposable(view.scope())
+            .subscribe { categoryId ->
+                selectedCategoryId = categoryId
+                newState { copy(selectedCategoryId = categoryId) }
+                reloadInbox()
+            }
+
+        view.categoryAddIntent
+            .observeOn(Schedulers.io())
+            .map { name -> categoryRepo.addCategory(name) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe { categoryId ->
+                selectedCategoryId = categoryId
+                reloadCategories()
+                reloadInbox()
+            }
+
+        view.categoryRenameIntent
+            .observeOn(Schedulers.io())
+            .doOnNext { (categoryId, name) -> categoryRepo.renameCategory(categoryId, name) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe { reloadCategories() }
+
+        view.categoryDeleteIntent
+            .observeOn(Schedulers.io())
+            .doOnNext { categoryId -> categoryRepo.deleteCategory(categoryId) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe { categoryId ->
+                if (selectedCategoryId == categoryId) selectedCategoryId = ALL_CATEGORIES
+                reloadCategories()
+                reloadInbox()
+            }
+
+        view.optionsItemIntent
+            .filter { itemId -> itemId == R.id.moveToCategory }
+            .withLatestFrom(state) { _, state -> state.categories }
+            .autoDisposable(view.scope())
+            .subscribe(view::showCategoryPicker)
+
+        // Move the selected conversations' senders to an existing category, or out of theirs
+        view.moveToCategoryIntent
+            .withLatestFrom(view.conversationsSelectedIntent) { categoryId, conversations ->
+                categoryId to senderAddresses(conversations)
+            }
+            .observeOn(Schedulers.io())
+            .doOnNext { (categoryId, addresses) ->
+                categoryRepo.setCategory(addresses, categoryId.takeIf { it != UNCATEGORIZE })
+            }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe { (categoryId, _) ->
+                view.clearSelection()
+                reloadInbox()
+                view.showCategoryMoved(categoryRepo.getCategories().firstOrNull { it.id == categoryId }?.name)
+            }
+
+        view.moveToNewCategoryIntent
+            .withLatestFrom(view.conversationsSelectedIntent) { name, conversations ->
+                name to senderAddresses(conversations)
+            }
+            .observeOn(Schedulers.io())
+            .doOnNext { (name, addresses) -> categoryRepo.setCategory(addresses, categoryRepo.addCategory(name)) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .autoDisposable(view.scope())
+            .subscribe { (name, _) ->
+                view.clearSelection()
+                reloadCategories()
+                reloadInbox()
+                view.showCategoryMoved(name.trim())
+            }
 
         view.optionsItemIntent
             .filter { itemId -> itemId == R.id.rename }

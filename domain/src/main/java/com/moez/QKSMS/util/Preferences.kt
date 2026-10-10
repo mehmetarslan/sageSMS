@@ -135,6 +135,8 @@ class Preferences @Inject constructor(
     val disableScreenshots = rxPrefs.getBoolean("disableScreenshots", false)
     val logging = rxPrefs.getBoolean("logging", false)
     val unreadAtTop = rxPrefs.getBoolean("unreadAtTop", false)
+    val showCategories = rxPrefs.getBoolean("showCategories", false)
+    val categoriesSeeded = rxPrefs.getBoolean("categoriesSeeded", false)
 
     val autoDeduplicate = rxPrefs.getBoolean("autoDeduplicateMessages", false)
 

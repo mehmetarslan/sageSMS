@@ -37,7 +37,7 @@ class QkRealmMigration @Inject constructor(
 ) : RealmMigration {
 
     companion object {
-        const val SCHEMA_VERSION: Long = 20
+        const val SCHEMA_VERSION: Long = 21
     }
 
     @SuppressLint("ApplySharedPref")
@@ -371,6 +371,21 @@ class QkRealmMigration @Inject constructor(
                     }
                     transform { o -> o.setString("pattern", "") }
                 }
+            version++
+        }
+
+        if (version == 20L) {
+            if (realm.schema.get("ConversationCategory") == null) {
+                realm.schema.create("ConversationCategory")
+                    .addField("id", Long::class.java, FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED)
+                    .addField("name", String::class.java, FieldAttribute.REQUIRED)
+                    .addField("position", Int::class.java, FieldAttribute.REQUIRED)
+            }
+            if (realm.schema.get("CategoryMember") == null) {
+                realm.schema.create("CategoryMember")
+                    .addField("address", String::class.java, FieldAttribute.PRIMARY_KEY, FieldAttribute.REQUIRED)
+                    .addField("categoryId", Long::class.java, FieldAttribute.REQUIRED, FieldAttribute.INDEXED)
+            }
             version++
         }
 

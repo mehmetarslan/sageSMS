@@ -162,6 +162,7 @@ class SettingsController : QkController<SettingsControllerBinding, SettingsView,
         binding.delivery.checkbox?.isChecked = state.deliveryEnabled
 
         binding.unreadAtTop.checkbox?.isChecked = state.unreadAtTopEnabled
+        binding.showCategories.checkbox?.isChecked = state.showCategoriesEnabled
 
         binding.signature.summary = state.signature.takeIf { it.isNotBlank() }
                 ?: context.getString(R.string.settings_signature_summary)

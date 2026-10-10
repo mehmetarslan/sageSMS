@@ -21,6 +21,7 @@ package dev.octoshrimpy.quik.feature.main
 import android.content.Intent
 import dev.octoshrimpy.quik.common.base.QkView
 import dev.octoshrimpy.quik.manager.ChangelogManager
+import dev.octoshrimpy.quik.model.ConversationCategory
 import io.reactivex.Observable
 
 interface MainView : QkView<MainState> {
@@ -43,6 +44,13 @@ interface MainView : QkView<MainState> {
     val changelogMoreIntent: Observable<*>
     val undoArchiveIntent: Observable<Unit>
     val snackbarButtonIntent: Observable<Unit>
+    val categorySelectedIntent: Observable<Long>
+    val categoryAddIntent: Observable<String>
+    val categoryRenameIntent: Observable<Pair<Long, String>>
+    val categoryDeleteIntent: Observable<Long>
+    /** A category id for the selected conversations, or [UNCATEGORIZE] to take them out of theirs */
+    val moveToCategoryIntent: Observable<Long>
+    val moveToNewCategoryIntent: Observable<String>
 
     fun requestDefaultSms()
     fun requestPermissions()
@@ -56,6 +64,10 @@ interface MainView : QkView<MainState> {
     fun showChangelog(changelog: ChangelogManager.CumulativeChangelog)
     fun showArchivedSnackbar(countConversationsArchived: Int, isArchiving: Boolean)
     fun drawerToggled(opened: Boolean)
+    fun showCategoryPicker(categories: List<ConversationCategory>)
+    fun showCategoryMoved(name: String?)
 }
+
+const val UNCATEGORIZE = -1L
 
 enum class NavItem { BACK, INBOX, ARCHIVED, BACKUP, SCHEDULED, BLOCKING, MESSAGE_UTILS, NOTIFICATION_RULES, SETTINGS, ABOUT, PLUS, HELP, INVITE }

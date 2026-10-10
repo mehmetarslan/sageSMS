@@ -22,6 +22,8 @@ import android.Manifest
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
@@ -29,6 +31,12 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewStub
+import android.widget.EditText
+import android.widget.FrameLayout
+import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
@@ -46,6 +54,7 @@ import com.uber.autodispose.autoDisposable
 import dagger.android.AndroidInjection
 import dev.octoshrimpy.quik.R
 import dev.octoshrimpy.quik.common.Navigator
+import dev.octoshrimpy.quik.model.ConversationCategory
 import dev.octoshrimpy.quik.common.androidxcompat.drawerOpen
 import dev.octoshrimpy.quik.common.base.QkThemedActivity
 import dev.octoshrimpy.quik.common.util.extensions.autoScrollToStart
@@ -121,6 +130,15 @@ class MainActivity : QkThemedActivity(), MainView {
     override val changelogMoreIntent by lazy { changelogDialog.moreClicks }
     override val undoArchiveIntent: Subject<Unit> = PublishSubject.create()
     override val snackbarButtonIntent: Subject<Unit> = PublishSubject.create()
+    override val categorySelectedIntent: Subject<Long> = PublishSubject.create()
+    override val categoryAddIntent: Subject<String> = PublishSubject.create()
+    override val categoryRenameIntent: Subject<Pair<Long, String>> = PublishSubject.create()
+    override val categoryDeleteIntent: Subject<Long> = PublishSubject.create()
+    override val moveToCategoryIntent: Subject<Long> = PublishSubject.create()
+    override val moveToNewCategoryIntent: Subject<String> = PublishSubject.create()
+
+    /** What the category bar currently shows, so it is only rebuilt when that changes. */
+    private var renderedCategories: Pair<List<Pair<Long, String>>, Long>? = null
 
     private val viewModel by lazy {
         ViewModelProviders.of(this, viewModelFactory)[MainViewModel::class.java]
@@ -264,7 +282,12 @@ class MainActivity : QkThemedActivity(), MainView {
                     selectedConversations > 1
             findItem(R.id.block)?.isVisible = selectedConversations != 0
             findItem(R.id.rename)?.isVisible = selectedConversations == 1
+            findItem(R.id.moveToCategory)?.isVisible =
+                state.showCategories && state.page is Inbox && selectedConversations != 0
         }
+
+        binding.categoriesBar.isVisible = state.showCategories && state.page is Inbox
+        if (binding.categoriesBar.isVisible) renderCategories(state)
 
         listOf(binding.drawer.plusBadge1, binding.drawer.plusBadge2).forEach { badge ->
             badge.isVisible = drawerBadgesExperiment.variant && !state.upgraded
@@ -287,7 +310,10 @@ class MainActivity : QkThemedActivity(), MainView {
                     binding.recyclerView.adapter = conversationsAdapter
                 conversationsAdapter.updateData(state.page.data)
                 itemTouchHelper.attachToRecyclerView(binding.recyclerView)
-                binding.empty.setText(R.string.inbox_empty_text)
+                binding.empty.setText(when {
+                    state.showCategories && state.selectedCategoryId != ALL_CATEGORIES -> R.string.category_empty
+                    else -> R.string.inbox_empty_text
+                })
             }
 
             is Searching -> {
@@ -378,6 +404,129 @@ class MainActivity : QkThemedActivity(), MainView {
                 snackbarBinding.snackbarButton.setText(R.string.main_permission_allow)
             }
         }
+    }
+
+    private fun renderCategories(state: MainState) {
+        val key = state.categories.map { it.id to it.name } to state.selectedCategoryId
+        if (key == renderedCategories) return
+        renderedCategories = key
+
+        binding.categoriesContainer.removeAllViews()
+        binding.categoriesContainer.addView(
+            categoryChip(getString(R.string.category_all), state.selectedCategoryId == ALL_CATEGORIES) {
+                categorySelectedIntent.onNext(ALL_CATEGORIES)
+            }
+        )
+        state.categories.forEach { category ->
+            binding.categoriesContainer.addView(
+                categoryChip(
+                    category.name,
+                    state.selectedCategoryId == category.id,
+                    onLongClick = { showCategoryActions(category) }
+                ) { categorySelectedIntent.onNext(category.id) }
+            )
+        }
+        binding.categoriesContainer.addView(
+            categoryChip("+", selected = false) {
+                showCategoryNameDialog(R.string.category_add, "") { name -> categoryAddIntent.onNext(name) }
+            }.apply { contentDescription = getString(R.string.category_add) }
+        )
+    }
+
+    /** A pill-shaped tab; the selected one is filled with the theme colour. */
+    private fun categoryChip(
+        label: String,
+        selected: Boolean,
+        onLongClick: (() -> Unit)? = null,
+        onClick: () -> Unit
+    ): TextView {
+        val dp = resources.displayMetrics.density
+        val theme = colors.theme()
+        return TextView(this).apply {
+            text = label
+            textSize = 14f
+            setPadding((14 * dp).toInt(), (6 * dp).toInt(), (14 * dp).toInt(), (6 * dp).toInt())
+            setTextColor(if (selected) theme.textPrimary else resolveThemeColor(android.R.attr.textColorPrimary))
+            background = GradientDrawable().apply {
+                cornerRadius = 16 * dp
+                if (selected) {
+                    setColor(theme.theme)
+                } else {
+                    setColor(Color.TRANSPARENT)
+                    setStroke(maxOf(1, dp.toInt()), resolveThemeColor(android.R.attr.textColorTertiary))
+                }
+            }
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginEnd = (8 * dp).toInt() }
+            setOnClickListener { onClick() }
+            onLongClick?.let { callback -> setOnLongClickListener { callback(); true } }
+        }
+    }
+
+    private fun showCategoryActions(category: ConversationCategory) {
+        AlertDialog.Builder(this)
+            .setTitle(category.name)
+            .setItems(arrayOf(getString(R.string.category_rename), getString(R.string.button_delete))) { _, which ->
+                when (which) {
+                    0 -> showCategoryNameDialog(R.string.category_rename, category.name) { name ->
+                        categoryRenameIntent.onNext(category.id to name)
+                    }
+                    1 -> AlertDialog.Builder(this)
+                        .setMessage(getString(R.string.category_delete_confirm, category.name))
+                        .setPositiveButton(R.string.button_delete) { _, _ -> categoryDeleteIntent.onNext(category.id) }
+                        .setNegativeButton(R.string.button_cancel, null)
+                        .show()
+                }
+            }
+            .show()
+    }
+
+    private fun showCategoryNameDialog(@StringRes title: Int, initial: String, onSave: (String) -> Unit) {
+        val dp = resources.displayMetrics.density
+        val input = EditText(this).apply {
+            hint = getString(R.string.category_name_hint)
+            setSingleLine()
+            setText(initial)
+            setSelection(text.length)
+        }
+        val container = FrameLayout(this).apply {
+            setPadding((20 * dp).toInt(), (8 * dp).toInt(), (20 * dp).toInt(), 0)
+            addView(input)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setView(container)
+            .setPositiveButton(R.string.button_save) { _, _ ->
+                input.text.toString().trim().takeIf { it.isNotEmpty() }?.let(onSave)
+            }
+            .setNegativeButton(R.string.button_cancel, null)
+            .show()
+    }
+
+    override fun showCategoryPicker(categories: List<ConversationCategory>) {
+        val labels = categories.map { it.name } +
+                getString(R.string.category_remove) +
+                getString(R.string.category_new)
+        AlertDialog.Builder(this)
+            .setTitle(R.string.main_menu_category)
+            .setItems(labels.toTypedArray()) { _, which ->
+                when (which) {
+                    in categories.indices -> moveToCategoryIntent.onNext(categories[which].id)
+                    categories.size -> moveToCategoryIntent.onNext(UNCATEGORIZE)
+                    else -> showCategoryNameDialog(R.string.category_new, "") { name ->
+                        moveToNewCategoryIntent.onNext(name)
+                    }
+                }
+            }
+            .setNegativeButton(R.string.button_cancel, null)
+            .show()
+    }
+
+    override fun showCategoryMoved(name: String?) {
+        val message = name?.let { getString(R.string.category_moved, it) } ?: getString(R.string.category_removed)
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onResume() =

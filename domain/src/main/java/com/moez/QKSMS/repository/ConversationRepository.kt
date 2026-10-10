@@ -27,7 +27,14 @@ import io.realm.RealmResults
 
 interface ConversationRepository {
 
-    fun getConversations(unreadAtTop: Boolean, archived: Boolean = false): RealmResults<Conversation>
+    /**
+     * @param addresses when not null, only conversations with a recipient at one of these addresses
+     */
+    fun getConversations(
+        unreadAtTop: Boolean,
+        archived: Boolean = false,
+        addresses: Collection<String>? = null
+    ): RealmResults<Conversation>
 
     fun getConversationsSnapshot(unreadAtTop: Boolean): List<Conversation>
 

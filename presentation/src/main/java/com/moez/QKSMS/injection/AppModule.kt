@@ -86,6 +86,8 @@ import dev.octoshrimpy.quik.repository.EmojiReactionRepositoryImpl
 import dev.octoshrimpy.quik.repository.MessageContentFilterRepository
 import dev.octoshrimpy.quik.repository.MessageContentFilterRepositoryImpl
 import dev.octoshrimpy.quik.repository.NotificationExtractRuleRepository
+import dev.octoshrimpy.quik.repository.ConversationCategoryRepository
+import dev.octoshrimpy.quik.repository.ConversationCategoryRepositoryImpl
 import dev.octoshrimpy.quik.repository.NotificationExtractRuleRepositoryImpl
 import dev.octoshrimpy.quik.repository.MessageRepository
 import dev.octoshrimpy.quik.repository.MessageRepositoryImpl
@@ -212,6 +214,11 @@ class AppModule(private var application: Application) {
     fun provideNotificationExtractRuleRepository(
         repository: NotificationExtractRuleRepositoryImpl
     ): NotificationExtractRuleRepository = repository
+
+    @Provides
+    fun provideConversationCategoryRepository(
+        repository: ConversationCategoryRepositoryImpl
+    ): ConversationCategoryRepository = repository
 
     @Provides
     fun provideContactRepository(repository: ContactRepositoryImpl): ContactRepository = repository

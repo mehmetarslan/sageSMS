@@ -82,9 +82,24 @@ class ConversationRepositoryImpl @Inject constructor(
 
     override fun getConversations(
         unreadAtTop: Boolean,
-        archived: Boolean
+        archived: Boolean,
+        addresses: Collection<String>?
     ): RealmResults<Conversation> =
         getConversationsBase(Realm.getDefaultInstance(), unreadAtTop, archived)
+            .let { query ->
+                when {
+                    addresses == null -> query
+                    // Realm rejects an empty IN list; an empty category simply shows nothing
+                    addresses.isEmpty() -> query.equalTo("id", -1L)
+                    // equalTo on the recipients link matches any recipient; IN is not used on link paths
+                    else -> query.beginGroup().apply {
+                        addresses.forEachIndexed { index, address ->
+                            if (index > 0) or()
+                            equalTo("recipients.address", address)
+                        }
+                    }.endGroup()
+                }
+            }
             .findAllAsync()
 
     override fun getConversationsSnapshot(unreadAtTop: Boolean): List<Conversation> =

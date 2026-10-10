@@ -100,6 +100,8 @@
     <string name="category_moved">Mutat în %1$s</string>
     <string name="category_removed">Eliminat din categorie</string>
     <string name="category_empty">Încă nu există conversații aici. În „Toate”, apasă lung pe conversații și alege „Mută în categorie”.</string>
+    <string name="category_uncategorized">Fără categorie</string>
+    <string name="category_uncategorized_empty">Toate conversațiile sunt într-o categorie.</string>
     <string name="blocked_numbers_pattern_info">Sfat: folosește * ca metacaracter (exemplu: 0555*). Pentru o expresie regulată, începe cu regex: (exemplu: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importă numere blocate</string>
     <string name="blocked_numbers_import_action">Importă</string>

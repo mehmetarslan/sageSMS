@@ -100,6 +100,8 @@
     <string name="category_moved">Presunuté do: %1$s</string>
     <string name="category_removed">Odobrané z kategórie</string>
     <string name="category_empty">Zatiaľ tu nie sú žiadne konverzácie. Na karte „Všetko“ podržte konverzácie a vyberte „Presunúť do kategórie“.</string>
+    <string name="category_uncategorized">Bez kategórie</string>
+    <string name="category_uncategorized_empty">Všetky konverzácie sú v kategóriách.</string>
     <string name="blocked_numbers_pattern_info">Tip: Použite * ako zástupný znak (príklad: 0555*). Pre regulárny výraz začnite regex: (príklad: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importovať blokované čísla</string>
     <string name="blocked_numbers_import_action">Importovať</string>

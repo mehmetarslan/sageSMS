@@ -100,6 +100,8 @@
     <string name="category_moved">Movido para %1$s</string>
     <string name="category_removed">Removido da categoria</string>
     <string name="category_empty">Ainda não há conversas aqui. Em “Todas”, toque e segure as conversas e escolha “Mover para categoria”.</string>
+    <string name="category_uncategorized">Sem categoria</string>
+    <string name="category_uncategorized_empty">Todas as conversas estão em uma categoria.</string>
     <string name="blocked_numbers_pattern_info">Dica: use * como curinga (exemplo: 0555*). Para uma expressão regular, comece com regex: (exemplo: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importar números bloqueados</string>
     <string name="blocked_numbers_import_action">Importar</string>

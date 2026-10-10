@@ -100,6 +100,8 @@
     <string name="category_moved">已移至%1$s</string>
     <string name="category_removed">已移出分类</string>
     <string name="category_empty">这里还没有对话。在“全部”中长按对话，然后选择“移至分类”。</string>
+    <string name="category_uncategorized">未分类</string>
+    <string name="category_uncategorized_empty">所有对话都已分类。</string>
     <string name="blocked_numbers_pattern_info">提示：使用 * 作为通配符（例如：0555*）。使用正则表达式时以 regex: 开头（例如：regex:^90[0-9]{10}$）。</string>
     <string name="blocked_numbers_import_title">导入已屏蔽号码</string>
     <string name="blocked_numbers_import_action">导入</string>

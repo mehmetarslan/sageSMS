@@ -100,6 +100,8 @@
     <string name="category_moved">Premješteno u: %1$s</string>
     <string name="category_removed">Uklonjeno iz kategorije</string>
     <string name="category_empty">Ovdje još nema razgovora. U kartici \"Sve\" dugo pritisnite razgovore i odaberite \"Premjesti u kategoriju\".</string>
+    <string name="category_uncategorized">Bez kategorije</string>
+    <string name="category_uncategorized_empty">Svi su razgovori u kategorijama.</string>
     <string name="blocked_numbers_pattern_info">Savjet: koristite * kao zamjenski znak (primjer: 0555*). Za regularni izraz počnite s regex: (primjer: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Uvezi blokirane brojeve</string>
     <string name="blocked_numbers_import_action">Uvezi</string>

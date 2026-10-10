@@ -96,10 +96,19 @@ class MainViewModel @Inject constructor(
 
     /** Inbox page for the selected category; the query is rebuilt whenever its senders change. */
     private fun inbox(): Inbox {
-        val addresses = selectedCategoryId
-            .takeIf { it != ALL_CATEGORIES && prefs.showCategories.get() }
-            ?.let(categoryRepo::getAddresses)
-        return Inbox(data = conversationRepo.getConversations(prefs.unreadAtTop.get(), addresses = addresses))
+        val category = selectedCategoryId.takeIf { prefs.showCategories.get() } ?: ALL_CATEGORIES
+        val data = when (category) {
+            ALL_CATEGORIES -> conversationRepo.getConversations(prefs.unreadAtTop.get())
+            UNCATEGORIZED -> conversationRepo.getConversations(
+                prefs.unreadAtTop.get(),
+                excludedAddresses = categoryRepo.getCategorizedAddresses()
+            )
+            else -> conversationRepo.getConversations(
+                prefs.unreadAtTop.get(),
+                addresses = categoryRepo.getAddresses(category)
+            )
+        }
+        return Inbox(data = data)
     }
 
     private fun reloadInbox() = newState { if (page is Inbox) copy(page = inbox()) else this }

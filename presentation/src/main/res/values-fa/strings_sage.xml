@@ -100,6 +100,8 @@
     <string name="category_moved">منتقل شد به %1$s</string>
     <string name="category_removed">از دسته حذف شد</string>
     <string name="category_empty">هنوز گفتگویی اینجا نیست. در «همه» روی گفتگوها فشار طولانی دهید و «انتقال به دسته» را انتخاب کنید.</string>
+    <string name="category_uncategorized">بدون دسته</string>
+    <string name="category_uncategorized_empty">همهٔ گفتگوها در دسته‌ها هستند.</string>
     <string name="blocked_numbers_pattern_info">نکته: از * به‌عنوان نویسهٔ عام استفاده کنید (مثال: 0555*). برای عبارت باقاعده با regex: شروع کنید (مثال: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">ورود شماره‌های مسدود</string>
     <string name="blocked_numbers_import_action">ورود</string>

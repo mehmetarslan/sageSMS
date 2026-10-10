@@ -100,6 +100,8 @@
     <string name="category_moved">%1$s(으)로 이동함</string>
     <string name="category_removed">카테고리에서 제거함</string>
     <string name="category_empty">아직 대화가 없습니다. \"전체\"에서 대화를 길게 누르고 \"카테고리로 이동\"을 선택하세요.</string>
+    <string name="category_uncategorized">미분류</string>
+    <string name="category_uncategorized_empty">모든 대화가 카테고리에 있습니다.</string>
     <string name="blocked_numbers_pattern_info">팁: *를 와일드카드로 사용하세요(예: 0555*). 정규식은 regex:로 시작하세요(예: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">차단된 번호 가져오기</string>
     <string name="blocked_numbers_import_action">가져오기</string>

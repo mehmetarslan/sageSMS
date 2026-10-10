@@ -22,6 +22,9 @@ interface ConversationCategoryRepository {
     /** Sender addresses in the category, exactly as stored on the conversation recipients. */
     fun getAddresses(categoryId: Long): List<String>
 
+    /** Every sender address that is in some category. */
+    fun getCategorizedAddresses(): List<String>
+
     /** Moves the senders to [categoryId], or out of any category when it is null. */
     fun setCategory(addresses: Collection<String>, categoryId: Long?)
 }

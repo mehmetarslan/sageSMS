@@ -100,6 +100,8 @@
     <string name="category_moved">ย้ายไปยัง %1$s แล้ว</string>
     <string name="category_removed">นำออกจากหมวดหมู่แล้ว</string>
     <string name="category_empty">ยังไม่มีการสนทนาที่นี่ ในแท็บ \"ทั้งหมด\" ให้กดค้างที่การสนทนาแล้วเลือก \"ย้ายไปยังหมวดหมู่\"</string>
+    <string name="category_uncategorized">ไม่มีหมวดหมู่</string>
+    <string name="category_uncategorized_empty">การสนทนาทั้งหมดอยู่ในหมวดหมู่แล้ว</string>
     <string name="blocked_numbers_pattern_info">เคล็ดลับ: ใช้ * เป็นไวลด์การ์ด (ตัวอย่าง: 0555*) สำหรับนิพจน์ทั่วไป ให้ขึ้นต้นด้วย regex: (ตัวอย่าง: regex:^90[0-9]{10}$)</string>
     <string name="blocked_numbers_import_title">นำเข้าหมายเลขที่บล็อก</string>
     <string name="blocked_numbers_import_action">นำเข้า</string>

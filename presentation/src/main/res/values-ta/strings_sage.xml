@@ -100,6 +100,8 @@
     <string name="category_moved">%1$s க்கு நகர்த்தப்பட்டது</string>
     <string name="category_removed">வகையிலிருந்து நீக்கப்பட்டது</string>
     <string name="category_empty">இங்கு இன்னும் உரையாடல்கள் இல்லை. \"அனைத்தும்\" தாவலில் உரையாடல்களை நீண்ட நேரம் அழுத்தி \"வகைக்கு நகர்த்து\" என்பதைத் தேர்ந்தெடுக்கவும்.</string>
+    <string name="category_uncategorized">வகையில்லாதவை</string>
+    <string name="category_uncategorized_empty">எல்லா உரையாடல்களும் ஒரு வகையில் உள்ளன.</string>
     <string name="blocked_numbers_pattern_info">உதவிக்குறிப்பு: * ஐ வைல்டு கார்டாகப் பயன்படுத்தவும் (எ.கா. 0555*). வழக்கமான கோவைக்கு regex: என்று தொடங்கவும் (எ.கா. regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">தடுத்த எண்களை இறக்குமதி செய்</string>
     <string name="blocked_numbers_import_action">இறக்குமதி</string>

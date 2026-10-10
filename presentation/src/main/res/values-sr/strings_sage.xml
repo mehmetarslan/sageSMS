@@ -100,6 +100,8 @@
     <string name="category_moved">Премештено у: %1$s</string>
     <string name="category_removed">Уклоњено из категорије</string>
     <string name="category_empty">Овде још нема разговора. У картици „Све“ дуго притисните разговоре и изаберите „Премести у категорију“.</string>
+    <string name="category_uncategorized">Без категорије</string>
+    <string name="category_uncategorized_empty">Сви разговори су у категоријама.</string>
     <string name="blocked_numbers_pattern_info">Савет: користите * као џокер (пример: 0555*). За регуларни израз почните са regex: (пример: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Увези блокиране бројеве</string>
     <string name="blocked_numbers_import_action">Увези</string>

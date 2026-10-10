@@ -311,7 +311,9 @@ class MainActivity : QkThemedActivity(), MainView {
                 conversationsAdapter.updateData(state.page.data)
                 itemTouchHelper.attachToRecyclerView(binding.recyclerView)
                 binding.empty.setText(when {
-                    state.showCategories && state.selectedCategoryId != ALL_CATEGORIES -> R.string.category_empty
+                    !state.showCategories -> R.string.inbox_empty_text
+                    state.selectedCategoryId == UNCATEGORIZED -> R.string.category_uncategorized_empty
+                    state.selectedCategoryId != ALL_CATEGORIES -> R.string.category_empty
                     else -> R.string.inbox_empty_text
                 })
             }
@@ -415,6 +417,11 @@ class MainActivity : QkThemedActivity(), MainView {
         binding.categoriesContainer.addView(
             categoryChip(getString(R.string.category_all), state.selectedCategoryId == ALL_CATEGORIES) {
                 categorySelectedIntent.onNext(ALL_CATEGORIES)
+            }
+        )
+        binding.categoriesContainer.addView(
+            categoryChip(getString(R.string.category_uncategorized), state.selectedCategoryId == UNCATEGORIZED) {
+                categorySelectedIntent.onNext(UNCATEGORIZED)
             }
         )
         state.categories.forEach { category ->

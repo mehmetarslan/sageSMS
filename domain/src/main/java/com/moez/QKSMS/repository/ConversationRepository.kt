@@ -29,11 +29,13 @@ interface ConversationRepository {
 
     /**
      * @param addresses when not null, only conversations with a recipient at one of these addresses
+     * @param excludedAddresses conversations with a recipient at one of these addresses are left out
      */
     fun getConversations(
         unreadAtTop: Boolean,
         archived: Boolean = false,
-        addresses: Collection<String>? = null
+        addresses: Collection<String>? = null,
+        excludedAddresses: Collection<String> = emptyList()
     ): RealmResults<Conversation>
 
     fun getConversationsSnapshot(unreadAtTop: Boolean): List<Conversation>

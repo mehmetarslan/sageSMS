@@ -100,6 +100,8 @@
     <string name="category_moved">Dipindahkan ke %1$s</string>
     <string name="category_removed">Dihapus dari kategori</string>
     <string name="category_empty">Belum ada percakapan di sini. Di \"Semua\", tekan lama percakapan lalu pilih \"Pindahkan ke kategori\".</string>
+    <string name="category_uncategorized">Tanpa kategori</string>
+    <string name="category_uncategorized_empty">Semua percakapan sudah masuk kategori.</string>
     <string name="blocked_numbers_pattern_info">Tips: Gunakan * sebagai karakter pengganti (contoh: 0555*). Untuk ekspresi reguler, awali dengan regex: (contoh: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Impor nomor yang diblokir</string>
     <string name="blocked_numbers_import_action">Impor</string>

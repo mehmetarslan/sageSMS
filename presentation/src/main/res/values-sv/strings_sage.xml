@@ -100,6 +100,8 @@
     <string name="category_moved">Flyttad till %1$s</string>
     <string name="category_removed">Borttagen från kategori</string>
     <string name="category_empty">Inga konversationer här än. Tryck länge på konversationer under \"Alla\" och välj \"Flytta till kategori\".</string>
+    <string name="category_uncategorized">Utan kategori</string>
+    <string name="category_uncategorized_empty">Alla konversationer ligger i en kategori.</string>
     <string name="blocked_numbers_pattern_info">Tips: Använd * som jokertecken (exempel: 0555*). Börja med regex: för ett reguljärt uttryck (exempel: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importera blockerade nummer</string>
     <string name="blocked_numbers_import_action">Importera</string>

@@ -100,6 +100,8 @@
     <string name="category_moved">已移至%1$s</string>
     <string name="category_removed">已移出分類</string>
     <string name="category_empty">這裡還沒有對話。在「全部」中長按對話，然後選擇「移至分類」。</string>
+    <string name="category_uncategorized">未分類</string>
+    <string name="category_uncategorized_empty">所有對話都已分類。</string>
     <string name="blocked_numbers_pattern_info">提示：使用 * 作為萬用字元（例如：0555*）。使用規則運算式時以 regex: 開頭（例如：regex:^90[0-9]{10}$）。</string>
     <string name="blocked_numbers_import_title">匯入已封鎖號碼</string>
     <string name="blocked_numbers_import_action">匯入</string>

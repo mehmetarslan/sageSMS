@@ -100,6 +100,8 @@
     <string name="category_moved">Переміщено: %1$s</string>
     <string name="category_removed">Прибрано з категорії</string>
     <string name="category_empty">Тут поки немає розмов. На вкладці «Усі» натисніть і утримуйте розмови та виберіть «Перемістити до категорії».</string>
+    <string name="category_uncategorized">Без категорії</string>
+    <string name="category_uncategorized_empty">Усі розмови розподілено за категоріями.</string>
     <string name="blocked_numbers_pattern_info">Порада: використовуйте * як шаблон (приклад: 0555*). Для регулярного виразу почніть із regex: (приклад: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Імпорт заблокованих номерів</string>
     <string name="blocked_numbers_import_action">Імпортувати</string>

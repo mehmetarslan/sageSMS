@@ -37,11 +37,13 @@ data class MainState(
     val notificationPermission: Boolean = true,
     val showCategories: Boolean = false,
     val categories: List<ConversationCategory> = listOf(),
-    /** [ALL_CATEGORIES] or a [ConversationCategory.id] */
+    /** [ALL_CATEGORIES], [UNCATEGORIZED] or a [ConversationCategory.id] */
     val selectedCategoryId: Long = ALL_CATEGORIES,
 )
 
 const val ALL_CATEGORIES = 0L
+/** Tab for senders that are in no category. */
+const val UNCATEGORIZED = -2L
 
 sealed class MainPage
 

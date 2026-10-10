@@ -100,6 +100,8 @@
     <string name="category_moved">הועבר אל %1$s</string>
     <string name="category_removed">הוסר מהקטגוריה</string>
     <string name="category_empty">אין כאן עדיין שיחות. ב\"הכול\" יש ללחוץ לחיצה ארוכה על שיחות ולבחור \"העברה לקטגוריה\".</string>
+    <string name="category_uncategorized">ללא קטגוריה</string>
+    <string name="category_uncategorized_empty">כל השיחות נמצאות בקטגוריות.</string>
     <string name="blocked_numbers_pattern_info">טיפ: אפשר להשתמש ב-* כתו כללי (לדוגמה: 0555*). לביטוי רגולרי יש להתחיל ב-regex: (לדוגמה: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">ייבוא מספרים חסומים</string>
     <string name="blocked_numbers_import_action">ייבוא</string>

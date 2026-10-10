@@ -83,9 +83,19 @@ class ConversationRepositoryImpl @Inject constructor(
     override fun getConversations(
         unreadAtTop: Boolean,
         archived: Boolean,
-        addresses: Collection<String>?
+        addresses: Collection<String>?,
+        excludedAddresses: Collection<String>
     ): RealmResults<Conversation> =
         getConversationsBase(Realm.getDefaultInstance(), unreadAtTop, archived)
+            .let { query ->
+                if (excludedAddresses.isEmpty()) query
+                else query.not().beginGroup().apply {
+                    excludedAddresses.forEachIndexed { index, address ->
+                        if (index > 0) or()
+                        equalTo("recipients.address", address)
+                    }
+                }.endGroup()
+            }
             .let { query ->
                 when {
                     addresses == null -> query

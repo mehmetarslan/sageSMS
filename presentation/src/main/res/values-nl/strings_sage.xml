@@ -100,6 +100,8 @@
     <string name="category_moved">Verplaatst naar %1$s</string>
     <string name="category_removed">Uit categorie gehaald</string>
     <string name="category_empty">Hier zijn nog geen gesprekken. Houd in \"Alle\" gesprekken ingedrukt en kies \"Verplaatsen naar categorie\".</string>
+    <string name="category_uncategorized">Zonder categorie</string>
+    <string name="category_uncategorized_empty">Alle gesprekken staan in een categorie.</string>
     <string name="blocked_numbers_pattern_info">Tip: gebruik * als jokerteken (voorbeeld: 0555*). Begin voor een reguliere expressie met regex: (voorbeeld: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Geblokkeerde nummers importeren</string>
     <string name="blocked_numbers_import_action">Importeren</string>

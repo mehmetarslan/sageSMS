@@ -100,6 +100,8 @@
     <string name="category_moved">Verschoben nach %1$s</string>
     <string name="category_removed">Aus Kategorie entfernt</string>
     <string name="category_empty">Hier gibt es noch keine Unterhaltungen. Halte unter \"Alle\" Unterhaltungen gedrückt und wähle \"In Kategorie verschieben\".</string>
+    <string name="category_uncategorized">Ohne Kategorie</string>
+    <string name="category_uncategorized_empty">Alle Unterhaltungen sind einer Kategorie zugeordnet.</string>
     <string name="blocked_numbers_pattern_info">Tipp: * als Platzhalter verwenden (Beispiel: 0555*). Für einen regulären Ausdruck regex: voranstellen (Beispiel: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Blockierte Nummern importieren</string>
     <string name="blocked_numbers_import_action">Importieren</string>

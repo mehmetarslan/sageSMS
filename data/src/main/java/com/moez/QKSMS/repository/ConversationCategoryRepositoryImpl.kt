@@ -65,6 +65,16 @@ class ConversationCategoryRepositoryImpl @Inject constructor() : ConversationCat
                 .map { member -> member.address }
         }
 
+    override fun getCategorizedAddresses(): List<String> =
+        Realm.getDefaultInstance().use { realm ->
+            // Only members of categories that still exist count, in case a delete was interrupted
+            val categoryIds = realm.where(ConversationCategory::class.java).findAll().map { it.id }.toSet()
+            realm.where(CategoryMember::class.java)
+                .findAll()
+                .filter { member -> member.categoryId in categoryIds }
+                .map { member -> member.address }
+        }
+
     override fun setCategory(addresses: Collection<String>, categoryId: Long?) {
         val distinct = addresses.filter { it.isNotBlank() }.distinct()
         if (distinct.isEmpty()) return

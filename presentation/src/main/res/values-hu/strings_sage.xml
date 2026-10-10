@@ -100,6 +100,8 @@
     <string name="category_moved">Áthelyezve ide: %1$s</string>
     <string name="category_removed">Eltávolítva a kategóriából</string>
     <string name="category_empty">Itt még nincsenek beszélgetések. Az „Összes” lapon tarts lenyomva beszélgetéseket, és válaszd az „Áthelyezés kategóriába” lehetőséget.</string>
+    <string name="category_uncategorized">Kategória nélkül</string>
+    <string name="category_uncategorized_empty">Minden beszélgetés kategóriában van.</string>
     <string name="blocked_numbers_pattern_info">Tipp: a * helyettesítő karakterként használható (példa: 0555*). Reguláris kifejezéshez kezdd regex: előtaggal (példa: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Letiltott számok importálása</string>
     <string name="blocked_numbers_import_action">Importálás</string>

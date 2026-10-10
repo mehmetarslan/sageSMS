@@ -100,6 +100,8 @@
     <string name="category_moved">Преместено в %1$s</string>
     <string name="category_removed">Премахнато от категорията</string>
     <string name="category_empty">Тук все още няма разговори. В „Всички“ задръжте разговорите и изберете „Преместване в категория“.</string>
+    <string name="category_uncategorized">Без категория</string>
+    <string name="category_uncategorized_empty">Всички разговори са в категории.</string>
     <string name="blocked_numbers_pattern_info">Съвет: използвайте * като заместващ знак (пример: 0555*). За регулярен израз започнете с regex: (пример: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Импортиране на блокирани номера</string>
     <string name="blocked_numbers_import_action">Импортиране</string>

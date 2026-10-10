@@ -100,6 +100,8 @@
     <string name="category_moved">Przeniesiono do: %1$s</string>
     <string name="category_removed">Usunięto z kategorii</string>
     <string name="category_empty">Nie ma tu jeszcze rozmów. W karcie „Wszystkie” przytrzymaj rozmowy i wybierz „Przenieś do kategorii”.</string>
+    <string name="category_uncategorized">Bez kategorii</string>
+    <string name="category_uncategorized_empty">Wszystkie rozmowy są w kategoriach.</string>
     <string name="blocked_numbers_pattern_info">Wskazówka: użyj * jako symbolu wieloznacznego (przykład: 0555*). Dla wyrażenia regularnego zacznij od regex: (przykład: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importuj zablokowane numery</string>
     <string name="blocked_numbers_import_action">Importuj</string>

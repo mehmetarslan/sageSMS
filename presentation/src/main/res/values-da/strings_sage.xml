@@ -100,6 +100,8 @@
     <string name="category_moved">Flyttet til %1$s</string>
     <string name="category_removed">Fjernet fra kategori</string>
     <string name="category_empty">Der er ingen samtaler her endnu. Hold samtaler nede under \"Alle\", og vælg \"Flyt til kategori\".</string>
+    <string name="category_uncategorized">Uden kategori</string>
+    <string name="category_uncategorized_empty">Alle samtaler er i en kategori.</string>
     <string name="blocked_numbers_pattern_info">Tip: Brug * som jokertegn (eksempel: 0555*). Start med regex: for et regulært udtryk (eksempel: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importér blokerede numre</string>
     <string name="blocked_numbers_import_action">Importér</string>

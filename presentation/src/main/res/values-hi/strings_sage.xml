@@ -100,6 +100,8 @@
     <string name="category_moved">%1$s में ले जाया गया</string>
     <string name="category_removed">श्रेणी से हटाया गया</string>
     <string name="category_empty">यहाँ अभी कोई बातचीत नहीं है। \"सभी\" में बातचीत को देर तक दबाएँ और \"श्रेणी में ले जाएँ\" चुनें।</string>
+    <string name="category_uncategorized">बिना श्रेणी</string>
+    <string name="category_uncategorized_empty">सभी बातचीत किसी श्रेणी में हैं।</string>
     <string name="blocked_numbers_pattern_info">सुझाव: वाइल्डकार्ड के रूप में * का उपयोग करें (उदाहरण: 0555*)। रेगुलर एक्सप्रेशन के लिए regex: से शुरू करें (उदाहरण: regex:^90[0-9]{10}$)।</string>
     <string name="blocked_numbers_import_title">ब्लॉक किए गए नंबर आयात करें</string>
     <string name="blocked_numbers_import_action">आयात करें</string>

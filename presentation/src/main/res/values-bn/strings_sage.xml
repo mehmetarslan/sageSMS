@@ -100,6 +100,8 @@
     <string name="category_moved">%1$s-এ সরানো হয়েছে</string>
     <string name="category_removed">বিভাগ থেকে সরানো হয়েছে</string>
     <string name="category_empty">এখানে এখনো কোনো কথোপকথন নেই। \"সব\"-এ কথোপকথনে দীর্ঘক্ষণ চাপুন এবং \"বিভাগে সরান\" বেছে নিন।</string>
+    <string name="category_uncategorized">বিভাগহীন</string>
+    <string name="category_uncategorized_empty">সব কথোপকথন কোনো না কোনো বিভাগে আছে।</string>
     <string name="blocked_numbers_pattern_info">টিপ: ওয়াইল্ডকার্ড হিসেবে * ব্যবহার করুন (উদাহরণ: 0555*)। রেগুলার এক্সপ্রেশনের জন্য regex: দিয়ে শুরু করুন (উদাহরণ: regex:^90[0-9]{10}$)।</string>
     <string name="blocked_numbers_import_title">ব্লক করা নম্বর আমদানি করুন</string>
     <string name="blocked_numbers_import_action">আমদানি করুন</string>

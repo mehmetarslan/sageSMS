@@ -100,6 +100,8 @@
     <string name="category_moved">Perkelta į: %1$s</string>
     <string name="category_removed">Pašalinta iš kategorijos</string>
     <string name="category_empty">Čia dar nėra pokalbių. Skiltyje „Visi“ ilgai paspauskite pokalbius ir pasirinkite „Perkelti į kategoriją“.</string>
+    <string name="category_uncategorized">Be kategorijos</string>
+    <string name="category_uncategorized_empty">Visi pokalbiai yra kategorijose.</string>
     <string name="blocked_numbers_pattern_info">Patarimas: naudokite * kaip pakaitos simbolį (pavyzdys: 0555*). Reguliariajai išraiškai pradėkite regex: (pavyzdys: regex:^90[0-9]{10}$).</string>
     <string name="blocked_numbers_import_title">Importuoti užblokuotus numerius</string>
     <string name="blocked_numbers_import_action">Importuoti</string>

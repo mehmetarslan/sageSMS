@@ -30,6 +30,12 @@ android {
         targetSdkVersion 33
         versionCode 2238
         versionName '4.3.6'
+        // CI passes -PsageBuildNumber=N so every GitHub release installs as an update over the previous one
+        if (project.hasProperty('sageBuildNumber')) {
+            def sageBuild = project.property('sageBuildNumber').toInteger()
+            versionCode versionCode + sageBuild
+            versionName "${versionName}-sage.${sageBuild}"
+        }
         setProperty("archivesBaseName", "SageSMS-v${versionName}")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

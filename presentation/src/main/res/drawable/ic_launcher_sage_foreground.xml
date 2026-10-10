@@ -13,12 +13,14 @@
         android:translateX="128"
         android:translateY="128">
 
+        <!-- Bubble centred, scaled so the tail tip sits on the adaptive safe-zone edge -->
         <group
-            android:pivotX="256"
-            android:pivotY="256"
-            android:scaleX="0.66"
-            android:scaleY="0.66"
-            android:translateY="12.6">
+            android:pivotX="249.5"
+            android:pivotY="262"
+            android:scaleX="0.9"
+            android:scaleY="0.9"
+            android:translateX="6.5"
+            android:translateY="-6">
 
             <!-- Speech bubble -->
             <path
